@@ -12,22 +12,21 @@
   --text:#5D2E46;  --muted:#B07090; --white:#FFFFFF;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;font-family:'Nunito',sans-serif;color:var(--text);overflow-x:hidden}
-
+html{font-family:'Nunito',sans-serif;color:var(--text)}
 body{
   background:linear-gradient(150deg,#FFF5FB 0%,#FFE8F3 45%,#F8F0FF 100%);
   min-height:100vh;
 }
 
-/* ── floating bg deco ─────────────────────────────── */
-.bg-deco{position:fixed;pointer-events:none;z-index:0;opacity:.25;
+/* bg deco */
+.bg-deco{position:fixed;pointer-events:none;z-index:0;opacity:.22;
   font-size:22px;animation:floatD var(--dur,7s) ease-in-out infinite;}
 @keyframes floatD{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(12deg)}}
 
-/* ── HEADER ───────────────────────────────────────── */
+/* HEADER */
 header{
   position:sticky;top:0;z-index:300;
-  background:rgba(255,255,255,.85);backdrop-filter:blur(20px);
+  background:rgba(255,255,255,.88);backdrop-filter:blur(20px);
   border-bottom:2.5px solid var(--soft);
   padding:11px 24px;
   display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
@@ -52,38 +51,40 @@ header{
 .btn-p:hover{opacity:.9;box-shadow:0 4px 14px rgba(233,30,140,.3)}
 .btn-stop{color:var(--deeper);border-color:var(--main)}
 
-/* ── HINT ─────────────────────────────────────────── */
+/* HINT */
 .hint{
-  text-align:center;padding:8px 16px;
+  text-align:center;padding:7px 16px;
   font-size:12px;font-weight:700;color:var(--muted);
   background:rgba(255,255,255,.5);border-bottom:1px solid var(--soft);
 }
 
-/* ── CANVAS WRAP (desktop mind map) ───────────────── */
+/* CANVAS WRAP */
 #map-wrap{
-  position:relative;
-  overflow-x:auto;overflow-y:visible;
+  width:100%;
+  overflow-x:auto;
+  overflow-y:visible;
 }
 #canvas{
   position:relative;
-  width:1100px;        /* fixed internal width */
-  height:840px;
+  width:1100px;
+  height:860px;
   margin:0 auto;
 }
 
-/* SVG on TOP of everything */
+/* SVG on top of nodes */
 #conn-svg{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  z-index:60;          /* ← highest layer */
+  position:absolute;
+  top:0;left:0;
+  width:1100px;height:860px;
+  z-index:60;
   pointer-events:none;
   overflow:visible;
 }
 
-/* ── CENTRAL NODE ─────────────────────────────────── */
+/* CENTRAL NODE */
 #central{
   position:absolute;
-  left:550px; top:420px;          /* positioned by JS */
+  left:550px;top:430px;
   transform:translate(-50%,-50%);
   z-index:40;
   width:210px;
@@ -91,7 +92,7 @@ header{
 }
 @keyframes floatC{
   0%,100%{transform:translate(-50%,-50%) translateY(0)}
-  50%{transform:translate(-50%,-50%) translateY(-11px)}
+  50%{transform:translate(-50%,-50%) translateY(-10px)}
 }
 .c-card{
   background:linear-gradient(145deg,#FF85A1,#E91E8C,#C2185B);
@@ -101,15 +102,15 @@ header{
 }
 .bow-top{
   position:absolute;top:-16px;left:50%;transform:translateX(-50%);
-  font-size:32px;animation:bowB 2.5s ease-in-out infinite;
+  font-size:30px;animation:bowB 2.5s ease-in-out infinite;
 }
 @keyframes bowB{0%,100%{transform:translateX(-50%) rotate(-8deg)}50%{transform:translateX(-50%) rotate(8deg) scale(1.1)}}
-.c-emoji{font-size:34px;margin-bottom:6px}
+.c-emoji{font-size:32px;margin-bottom:6px}
 .c-title{font-size:13px;font-weight:900;color:#fff;letter-spacing:.02em;line-height:1.3}
 .c-sub{font-size:9px;color:rgba(255,255,255,.8);font-weight:700;margin:5px 0 12px;letter-spacing:.06em;text-transform:uppercase}
 .c-audio-btn{
   display:inline-flex;align-items:center;gap:5px;
-  padding:5px 12px;border-radius:20px;border:none;
+  padding:5px 12px;border-radius:20px;
   background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);
   color:#fff;font-size:10px;font-weight:800;font-family:'Nunito',sans-serif;
   cursor:pointer;transition:background .2s;
@@ -117,20 +118,22 @@ header{
 .c-audio-btn:hover{background:rgba(255,255,255,.35)}
 .c-audio-btn.playing{background:rgba(255,255,255,.4)}
 
-/* ── BRANCH NODES ─────────────────────────────────── */
+/* BRANCH NODES — invisible until positioned by JS */
 .node{
   position:absolute;
   transform:translate(-50%,-50%);
   z-index:40;
-  width:180px;
+  width:175px;
   cursor:pointer;
-  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  opacity:0;                           /* fade in after positioned */
+  transition:opacity .5s, transform .3s cubic-bezier(.34,1.56,.64,1);
 }
+.node.placed{opacity:1}               /* JS adds this class */
 .node:hover{transform:translate(-50%,-50%) scale(1.09)}
 .node.sel{transform:translate(-50%,-50%) scale(1.06)}
 
-.nc{  /* node card */
-  background:rgba(255,255,255,.92);
+.nc{
+  background:rgba(255,255,255,.93);
   border:2.5px solid var(--mid);
   border-radius:18px;
   padding:12px 13px 10px;
@@ -138,15 +141,13 @@ header{
   backdrop-filter:blur(8px);
   transition:border-color .25s,box-shadow .25s;
   position:relative;
-  overflow:visible;
 }
-/* tiny bow on each node card */
-.nc::before{content:'🌸';position:absolute;top:-10px;right:8px;font-size:14px;opacity:.8}
+.nc::before{content:'🌸';position:absolute;top:-10px;right:8px;font-size:13px;opacity:.8}
 .node.sel .nc{border-color:var(--deep);box-shadow:0 6px 28px rgba(233,30,140,.3)}
 
-.n-ico{font-size:18px;margin-bottom:3px}
-.n-ttl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--deep);margin-bottom:2px;line-height:1.3}
-.n-sub{font-size:9.5px;color:var(--muted);line-height:1.4}
+.n-ico{font-size:17px;margin-bottom:3px}
+.n-ttl{font-size:9.5px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:var(--deep);margin-bottom:2px;line-height:1.3}
+.n-sub{font-size:9px;color:var(--muted);line-height:1.4}
 .n-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
 .n-aud{
   display:inline-flex;align-items:center;gap:3px;
@@ -157,12 +158,12 @@ header{
 }
 .n-aud:hover{background:var(--mid)}
 .n-aud.playing{background:var(--main);color:#fff}
-.n-arrow{font-size:10px;color:var(--muted);font-weight:700}
+.n-arrow{font-size:9px;color:var(--muted);font-weight:700}
 
 @keyframes adotPulse{0%,100%{opacity:1}50%{opacity:.2}}
 .adot{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;animation:adotPulse 1s infinite}
 
-/* ── DETAIL PANEL ─────────────────────────────────── */
+/* DETAIL PANEL */
 #detail{
   max-height:0;overflow:hidden;
   transition:max-height .55s cubic-bezier(.4,0,.2,1);
@@ -171,11 +172,11 @@ header{
   backdrop-filter:blur(16px);
 }
 #detail.open{max-height:1400px}
-.det-inner{max-width:900px;margin:0 auto;padding:30px 24px 40px}
+.det-inner{max-width:900px;margin:0 auto;padding:28px 24px 38px}
 .det-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px}
 .det-left{display:flex;align-items:center;gap:12px}
-.det-big{font-size:38px}
-.det-ttl{font-size:19px;font-weight:900;color:var(--text)}
+.det-big{font-size:36px}
+.det-ttl{font-size:18px;font-weight:900;color:var(--text)}
 .det-sub{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
 .det-cls{
   padding:7px 14px;border-radius:20px;border:2px solid var(--mid);
@@ -185,22 +186,22 @@ header{
 }
 .det-cls:hover{background:var(--soft)}
 .det-desc{
-  font-size:14px;color:var(--text);line-height:1.75;
+  font-size:13.5px;color:var(--text);line-height:1.75;
   padding:14px 16px;background:var(--cream);
   border-radius:12px;border-left:4px solid var(--main);
-  margin-bottom:20px;
+  margin-bottom:18px;
 }
 .det-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
 .det-ch{background:var(--white);border:1.5px solid var(--soft);border-radius:14px;padding:13px}
 .det-ch-hd{display:flex;align-items:center;gap:7px;margin-bottom:7px}
-.det-ch-ico{font-size:17px}
+.det-ch-ico{font-size:16px}
 .det-ch-ttl{font-size:10px;font-weight:900;color:var(--deeper);text-transform:uppercase;letter-spacing:.05em}
 .det-ch-txt{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:4px}
 .det-items{list-style:none;display:flex;flex-direction:column;gap:3px}
 .det-items li{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text)}
 .det-items li::before{content:'🌸';flex-shrink:0;font-size:10px;margin-top:1px}
 
-/* ── MOBILE ───────────────────────────────────────── */
+/* MOBILE */
 @media(max-width:768px){
   #map-wrap,#detail{display:none}
   .mob{display:block!important;padding:16px 14px 60px}
@@ -217,7 +218,7 @@ header{
 </head>
 <body>
 
-<!-- bg decorations -->
+<!-- bg deco -->
 <div class="bg-deco" style="top:8%;left:4%;--dur:7s">🎀</div>
 <div class="bg-deco" style="top:18%;right:6%;--dur:9s;animation-delay:2s">⭐</div>
 <div class="bg-deco" style="top:55%;left:2%;--dur:8s;animation-delay:1s">🌸</div>
@@ -242,10 +243,9 @@ header{
 </header>
 <div class="hint">🌸 Clique sur une carte pour voir les détails &nbsp;·&nbsp; 🔊 Pour écouter l'audio de chaque section</div>
 
-<!-- CANVAS (desktop mind map) -->
+<!-- CANVAS -->
 <div id="map-wrap">
   <div id="canvas">
-    <!-- SVG drawn by JS on top -->
     <svg id="conn-svg" aria-hidden="true"></svg>
 
     <!-- Central node -->
@@ -262,23 +262,23 @@ header{
       </div>
     </div>
 
-    <!-- Nodes appended by JS -->
+    <!-- Nodes injected by JS -->
   </div>
 </div>
 
 <!-- DETAIL PANEL -->
 <div id="detail"><div class="det-inner" id="det-inner"></div></div>
 
-<!-- MOBILE FALLBACK -->
+<!-- MOBILE -->
 <div class="mob" id="mob"></div>
 
 <script>
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════════
    DATA
-═══════════════════════════════════════════════ */
-const PINK = ['#FFB3CC','#FF85A1','#E91E8C','#CE93D8','#FF85A1','#E91E8C','#C2185B','#FF79B0','#E91E8C'];
+══════════════════════════════════════ */
+const PINK=['#FFB3CC','#FF85A1','#E91E8C','#CE93D8','#FF85A1','#E91E8C','#C2185B','#FF79B0','#E91E8C'];
 
-const BRANCHES = [
+const BRANCHES=[
   {
     emoji:'🏛️',title:'FONDEMENTS DU CURRICULUM',
     sub:'Concepts · Évolution · Méthode universelle',
@@ -296,9 +296,9 @@ const BRANCHES = [
     desc:'Trois dimensions complémentaires: administrative (gestion), créative (conception) et technique (organisation).',
     audio:'Les processus curriculaires s\'articulent autour de trois dimensions. La gestion curriculaire, dimension administrative, assure le contrôle et la planification institutionnelle. Selon Franco et al. 2000, le curriculum répond aux besoins de la société. La conception curriculaire, dimension créative, relie le social et l\'institutionnel. Selon Guarro en 2002, c\'est un processus non linéaire, participatif. L\'organisation curriculaire, dimension technique, systématise les contenus à travers la séquentialité et la structuration.',
     kids:[
-      {ico:'🏢',ttl:'Gestion — Dimension administrative',txt:'Franco et al. (2000): répond aux besoins sociaux, tient compte des changements scientifiques, technologiques et culturels.',items:['Mécanismes de contrôle','Planification institutionnelle','Construction d\'un citoyen intégral']},
-      {ico:'💡',ttl:'Conception — Dimension créative',txt:'Guarro (2002): processus non linéaire, participatif, flux continu de décisions.',items:['Stratégies pédagogiques','Rôles et responsabilités','Environnements d\'apprentissage']},
-      {ico:'🔧',ttl:'Organisation — Dimension technique',txt:'Systématisation progressive reliant connaissances et expériences.',items:['Séquentialité: ordre des contenus','Structuration: relations entre contenus','Praticité et cohérence']}
+      {ico:'🏢',ttl:'Gestion — Dimension administrative',txt:'Franco et al. (2000): répond aux besoins sociaux.',items:['Mécanismes de contrôle','Planification institutionnelle','Construction d\'un citoyen intégral']},
+      {ico:'💡',ttl:'Conception — Dimension créative',txt:'Guarro (2002): processus non linéaire, participatif.',items:['Stratégies pédagogiques','Rôles et responsabilités','Environnements d\'apprentissage']},
+      {ico:'🔧',ttl:'Organisation — Dimension technique',txt:'Systématisation progressive.',items:['Séquentialité: ordre des contenus','Structuration: relations entre contenus','Praticité et cohérence']}
     ]
   },
   {
@@ -307,9 +307,9 @@ const BRANCHES = [
     desc:'Toutes les approches couvrent l\'analyse des besoins, l\'environnement, les objectifs, les contenus, la méthodologie et l\'évaluation.',
     audio:'Les modèles de conception curriculaire. Le modèle en cascade est séquentiel et rigoureux. L\'approche opportuniste ciblée suit la devise faire ce qu\'on peut quand on peut. Le modèle des couches de nécessité de Tessmer et Wedman en 1990 vise un niveau suffisamment bon pour le moment, avec une amélioration progressive.',
     kids:[
-      {ico:'🌊',ttl:'Modèle en cascade',txt:'Progression séquentielle. Chaque étape devient l\'entrée de la suivante.',items:['Analyse des besoins','Analyse de l\'environnement','Objectifs → Contenus → Méthodologie']},
-      {ico:'🎯',ttl:'Approche opportuniste ciblée',txt:'"Faire ce qu\'on peut quand on peut." Enseigner d\'abord, ajuster ensuite.',items:['Format réalisé en premier','Amélioration progressive','Flexible et réaliste']},
-      {ico:'🧅',ttl:'Couches de nécessité — Tessmer & Wedman (1990)',txt:'"Suffisamment bon pour le moment." Critique des modèles rigides.',items:['Identifier la contrainte principale','Sélectionner les contenus essentiels','Révisions progressives']}
+      {ico:'🌊',ttl:'Modèle en cascade',txt:'Progression séquentielle.',items:['Analyse des besoins','Analyse de l\'environnement','Objectifs → Contenus → Méthodologie']},
+      {ico:'🎯',ttl:'Approche opportuniste ciblée',txt:'"Faire ce qu\'on peut quand on peut."',items:['Format réalisé en premier','Amélioration progressive','Flexible et réaliste']},
+      {ico:'🧅',ttl:'Couches de nécessité — Tessmer & Wedman (1990)',txt:'"Suffisamment bon pour le moment."',items:['Identifier la contrainte principale','Sélectionner les contenus essentiels','Révisions progressives']}
     ]
   },
   {
@@ -329,8 +329,8 @@ const BRANCHES = [
     audio:'L\'évolution des syllabus. Dans les années 1960, l\'accent était mis sur les aspects linguistiques et les compétences langagières. Dans les années 1970, face à la difficulté d\'utiliser la langue hors de la salle de classe, une nouvelle vision apparaît: l\'usage réel de la langue et la communication. C\'est ainsi qu\'apparaissent les syllabus fonctionnels.',
     kids:[
       {ico:'📌',ttl:'Années 1960',items:['Accent sur les aspects linguistiques','Compétences langagières structurales']},
-      {ico:'💬',ttl:'Années 1970',txt:'Difficultés d\'utiliser la langue hors classe. Vers la communication authentique.',items:['Usage réel de la langue','Communication authentique','Apparition des syllabus fonctionnels']},
-      {ico:'📢',ttl:'Syllabus fonctionnels',txt:'La langue est utilisée selon les intentions et buts communicatifs.',items:['Fonctions communicatives','Contextes réels d\'usage']}
+      {ico:'💬',ttl:'Années 1970',txt:'Vers la communication authentique.',items:['Usage réel de la langue','Communication authentique','Apparition des syllabus fonctionnels']},
+      {ico:'📢',ttl:'Syllabus fonctionnels',txt:'La langue est utilisée selon les intentions communicatives.',items:['Fonctions communicatives','Contextes réels d\'usage']}
     ]
   },
   {
@@ -362,8 +362,8 @@ const BRANCHES = [
     audio:'Les méthodologies curriculaires. Les méthodologies classiques comprennent Mauritz Johnson, Hilda Taba en 1962 et Ralph Tyler en 1979. Les méthodologies technologiques misent sur la rationalité mais sont critiquées. Les méthodologies sociopolitiques avec Stenhouse et Coll critiquent l\'approche technologique. Les méthodologies constructivistes voient la connaissance comme une construction progressive par l\'apprenant actif.',
     kids:[
       {ico:'📜',ttl:'Classiques',items:['Mauritz Johnson: résultats d\'apprentissage structurés','Hilda Taba (1962): diagnostic → objectifs → contenus → activités → évaluation','Ralph Tyler (1979): 4 questions fondamentales']},
-      {ico:'⚗️',ttl:'Technologiques',txt:'Rationalité, clarté, cohérence. Critiques: vision mécaniste.',items:['Glazman & Ibarrola (1978)','José Antonio Arnaz (1981)','Victor Arredondo (1979)']},
-      {ico:'🏛️',ttl:'Sociopolitiques',txt:'Critique des approches technologiques. Relation éducation-société.',items:['Approche reconceptualiste','Curriculum modulaire','Stenhouse · César Coll']},
+      {ico:'⚗️',ttl:'Technologiques',txt:'Rationalité, clarté, cohérence.',items:['Glazman & Ibarrola (1978)','José Antonio Arnaz (1981)','Victor Arredondo (1979)']},
+      {ico:'🏛️',ttl:'Sociopolitiques',txt:'Critique des approches technologiques.',items:['Approche reconceptualiste','Curriculum modulaire','Stenhouse · César Coll']},
       {ico:'🧠',ttl:'Constructivistes',txt:'La connaissance se construit progressivement.',items:['Élaboration de schémas et modèles','Rôle actif et réflexif de l\'apprenant']}
     ]
   },
@@ -379,9 +379,9 @@ const BRANCHES = [
   }
 ];
 
-/* ═══════════════════════════════════════════════
-   RENDER BRANCH NODES
-═══════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+   BUILD NODES (synchronous, before load)
+══════════════════════════════════════ */
 const canvas  = document.getElementById('canvas');
 const nodeEls = [];
 let selIdx    = -1;
@@ -407,42 +407,41 @@ BRANCHES.forEach((b, i) => {
   nodeEls.push(el);
 });
 
-/* ═══════════════════════════════════════════════
-   POSITIONING  (radial layout)
-═══════════════════════════════════════════════ */
-const CX = 550, CY = 420;   /* center of 1100×840 canvas */
+/* ══════════════════════════════════════
+   POSITIONING — radial layout
+   CX,CY = center; R = radius
+══════════════════════════════════════ */
+const CX = 550, CY = 430;
 
 function positionAll(){
-  /* Central */
   document.getElementById('central').style.left = `${CX}px`;
   document.getElementById('central').style.top  = `${CY}px`;
 
-  /* Nodes: 9 evenly spaced around a circle */
-  const R = 270;
+  const R = 265;
   nodeEls.forEach((el, i) => {
     const ang = (-90 + i * 40) * Math.PI / 180;
     el.style.left = `${CX + R * Math.cos(ang)}px`;
     el.style.top  = `${CY + R * Math.sin(ang)}px`;
+    /* reveal after positioning */
+    el.classList.add('placed');
   });
 }
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════════
    DETAIL PANEL
-═══════════════════════════════════════════════ */
+══════════════════════════════════════ */
 function openDetail(i){
   const b = BRANCHES[i];
-  if (selIdx === i){
-    selIdx = -1;
-    nodeEls[i].classList.remove('sel');
+  if(selIdx === i){
+    selIdx=-1; nodeEls[i].classList.remove('sel');
     document.getElementById('detail').classList.remove('open');
-    drawSVG();
-    return;
+    drawSVG(); return;
   }
-  if (selIdx >= 0) nodeEls[selIdx].classList.remove('sel');
+  if(selIdx >= 0) nodeEls[selIdx].classList.remove('sel');
   selIdx = i;
   nodeEls[i].classList.add('sel');
 
-  const kidsHTML = b.kids.map(k => `
+  const kidsHTML = b.kids.map(k=>`
     <div class="det-ch">
       <div class="det-ch-hd"><span class="det-ch-ico">${k.ico}</span><span class="det-ch-ttl">${k.ttl}</span></div>
       ${k.txt  ? `<div class="det-ch-txt">${k.txt}</div>` : ''}
@@ -464,137 +463,120 @@ function openDetail(i){
     <div class="det-grid">${kidsHTML}</div>`;
 
   document.getElementById('detail').classList.add('open');
-  setTimeout(() => document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'}), 80);
+  setTimeout(()=>document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
   drawSVG();
 }
 
 function closeDetail(){
-  if (selIdx >= 0){ nodeEls[selIdx].classList.remove('sel'); selIdx = -1; }
+  if(selIdx >= 0){ nodeEls[selIdx].classList.remove('sel'); selIdx=-1; }
   document.getElementById('detail').classList.remove('open');
   drawSVG();
 }
 
-/* ═══════════════════════════════════════════════
-   SVG CONNECTIONS  (z-index 60 = top layer)
-═══════════════════════════════════════════════ */
-/* connection pairs: -1 = central node */
-const MAIN_CONNS = [[-1,0],[-1,1],[-1,2],[-1,3],[-1,4],[-1,5],[-1,6],[-1,7],[-1,8]];
-const SIDE_CONNS = [
-  [0,1],[1,2],[0,8],          /* top arc */
-  [3,4],[4,5],                /* right arc */
-  [5,6],[6,7],                /* bottom arc */
-  [7,8],                      /* left arc */
-  [0,3],[2,5],[4,7],[6,1],    /* diagonals */
-  [1,8],[3,6]                 /* cross */
+/* ══════════════════════════════════════
+   SVG CONNECTIONS  (z-index 60 = top)
+══════════════════════════════════════ */
+const MAIN_CONNS=[[-1,0],[-1,1],[-1,2],[-1,3],[-1,4],[-1,5],[-1,6],[-1,7],[-1,8]];
+const SIDE_CONNS=[
+  [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,0],   /* ring */
+  [0,4],[1,5],[2,6],[3,7],[4,8]                             /* cross chords */
 ];
 
 function svgEl(tag, attrs){
   const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-  Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k,v));
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
   return el;
 }
 
 function nodeRect(idx){
-  const el = idx === -1
+  const el = idx===-1
     ? document.querySelector('.c-card')
     : nodeEls[idx].querySelector('.nc');
+  if(!el) return null;
   const wr = canvas.getBoundingClientRect();
   const er = el.getBoundingClientRect();
-  const x  = er.left - wr.left,  y = er.top - wr.top;
-  return { x, y, w:er.width, h:er.height, cx:x+er.width/2, cy:y+er.height/2 };
+  const x  = er.left - wr.left, y = er.top - wr.top;
+  return {x, y, w:er.width, h:er.height, cx:x+er.width/2, cy:y+er.height/2};
 }
 
 function borderPt(r, toward){
-  const dx = toward.cx - r.cx, dy = toward.cy - r.cy;
-  if(!dx && !dy) return {x:r.cx,y:r.cy};
-  const sx = Math.abs(dx)/(r.w/2), sy = Math.abs(dy)/(r.h/2);
-  const t  = 1 / Math.max(sx, sy);
-  return {x: r.cx + dx*t, y: r.cy + dy*t};
+  const dx=toward.cx-r.cx, dy=toward.cy-r.cy;
+  if(!dx&&!dy) return {x:r.cx,y:r.cy};
+  const sx=Math.abs(dx)/(r.w/2), sy=Math.abs(dy)/(r.h/2);
+  const t=1/Math.max(sx,sy);
+  return {x:r.cx+dx*t, y:r.cy+dy*t};
 }
 
 function drawSVG(){
   const svg = document.getElementById('conn-svg');
-  svg.innerHTML = '';
-  const W = canvas.offsetWidth, H = canvas.offsetHeight;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML='';
 
-  /* keyframe style inside SVG */
   const sty = document.createElementNS('http://www.w3.org/2000/svg','style');
-  sty.textContent = `
-    @keyframes drawIn{from{stroke-dashoffset:800}to{stroke-dashoffset:0}}
-    @keyframes hrtPulse{0%,100%{font-size:9px;opacity:.9}50%{font-size:13px;opacity:1}}
-    @keyframes dotGlow{0%,100%{opacity:.8;r:3px}50%{opacity:.4;r:2px}}
+  sty.textContent=`
+    @keyframes drawIn{from{stroke-dashoffset:900}to{stroke-dashoffset:0}}
+    @keyframes hrtPulse{0%,100%{font-size:9px;opacity:.85}50%{font-size:13px;opacity:1}}
+    @keyframes dotGlow{0%,100%{opacity:.75;r:3.5px}50%{opacity:.4;r:2px}}
   `;
   svg.prepend(sty);
 
-  let seq = 0;
+  let seq=0;
 
   function addPath(a, b, main){
-    const rA = nodeRect(a), rB = nodeRect(b);
-    const pA = borderPt(rA, rB), pB = borderPt(rB, rA);
+    const rA=nodeRect(a), rB=nodeRect(b);
+    if(!rA||!rB) return;
+    const pA=borderPt(rA,rB), pB=borderPt(rB,rA);
+    const color = a===-1 ? PINK[b] : PINK[Math.min(a,b)];
+    const dx=pB.x-pA.x, dy=pB.y-pA.y;
+    const cx1=pA.x+dx*.38+dy*.12, cy1=pA.y+dy*.38-dx*.12;
+    const cx2=pB.x-dx*.38-dy*.12, cy2=pB.y-dy*.38+dx*.12;
+    const d=`M${pA.x.toFixed(1)},${pA.y.toFixed(1)} C${cx1.toFixed(1)},${cy1.toFixed(1)} ${cx2.toFixed(1)},${cy2.toFixed(1)} ${pB.x.toFixed(1)},${pB.y.toFixed(1)}`;
 
-    const color = a === -1 ? PINK[b] : PINK[Math.min(a,b)];
-    const dx = pB.x-pA.x, dy = pB.y-pA.y;
-    const cx1 = pA.x + dx*.38 + dy*.12, cy1 = pA.y + dy*.38 - dx*.12;
-    const cx2 = pB.x - dx*.38 - dy*.12, cy2 = pB.y - dy*.38 + dx*.12;
-    const d = `M${pA.x.toFixed(1)},${pA.y.toFixed(1)} C${cx1.toFixed(1)},${cy1.toFixed(1)} ${cx2.toFixed(1)},${cy2.toFixed(1)} ${pB.x.toFixed(1)},${pB.y.toFixed(1)}`;
-
-    const path = svgEl('path',{
+    const path=svgEl('path',{
       d, fill:'none', stroke:color,
-      'stroke-width': main ? '2.2' : '1.2',
-      'stroke-opacity': main ? '.72' : '.38',
+      'stroke-width': main?'2.4':'1.1',
+      'stroke-opacity': main?'.75':'.32',
       'stroke-linecap':'round',
-      'stroke-dasharray': main ? '800' : '6 4',
-      'stroke-dashoffset': main ? '800' : '0',
+      'stroke-dasharray': main?'900':'5 4',
+      'stroke-dashoffset': main?'900':'0',
     });
-    if(main){
-      path.style.animation = `drawIn .9s ${(seq*0.07).toFixed(2)}s ease forwards`;
-    }
+    if(main) path.style.animation=`drawIn 1s ${(seq*.08).toFixed(2)}s ease forwards`;
     svg.appendChild(path);
 
-    /* heart midpoint on main lines */
     if(main){
-      const mx = (pA.x+pB.x)/2, my = (pA.y+pB.y)/2;
-      const t = svgEl('text',{
-        x:mx, y:my, 'text-anchor':'middle','dominant-baseline':'middle',
-        fill:color, opacity:'.9',
-        style:`font-size:10px;animation:hrtPulse 2.2s ${(seq*0.07).toFixed(2)}s ease-in-out infinite`
+      const mx=(pA.x+pB.x)/2, my=(pA.y+pB.y)/2;
+      const t=svgEl('text',{
+        x:mx, y:my,'text-anchor':'middle','dominant-baseline':'middle',
+        fill:color,opacity:'.9',
+        style:`font-size:10px;animation:hrtPulse 2.2s ${(seq*.08).toFixed(2)}s ease-in-out infinite`
       });
-      t.textContent = '♥';
-      svg.appendChild(t);
+      t.textContent='♥'; svg.appendChild(t);
     }
 
-    /* dots at endpoints */
-    [pA,pB].forEach(p => {
-      const c = svgEl('circle',{cx:p.x, cy:p.y, r:'3.5', fill:color, opacity:'.75',
-        style:`animation:dotGlow 2.5s ${(seq*0.07).toFixed(2)}s ease-in-out infinite`});
-      svg.appendChild(c);
+    [pA,pB].forEach(p=>{
+      svg.appendChild(svgEl('circle',{cx:p.x,cy:p.y,r:'3.5',fill:color,opacity:'.7',
+        style:`animation:dotGlow 2.5s ${(seq*.08).toFixed(2)}s ease-in-out infinite`}));
     });
-
     seq++;
   }
 
-  /* draw in order: side first (behind), then main on top */
-  SIDE_CONNS.forEach(([a,b]) => addPath(a, b, false));
-  MAIN_CONNS.forEach(([a,b]) => addPath(a, b, true));
+  SIDE_CONNS.forEach(([a,b])=>addPath(a,b,false));
+  MAIN_CONNS.forEach(([a,b])=>addPath(a,b,true));
 
-  /* highlight ring around selected node */
-  if(selIdx >= 0){
-    const r = nodeRect(selIdx);
-    svg.appendChild(svgEl('rect',{
-      x:r.x-5, y:r.y-5, width:r.w+10, height:r.h+10, rx:22,
-      fill:'none', stroke:PINK[selIdx],
-      'stroke-width':'2.5','stroke-opacity':'.7',
-      'stroke-dasharray':'6 3'
+  if(selIdx>=0){
+    const r=nodeRect(selIdx);
+    if(r) svg.appendChild(svgEl('rect',{
+      x:r.x-5,y:r.y-5,width:r.w+10,height:r.h+10,rx:22,
+      fill:'none',stroke:PINK[selIdx],
+      'stroke-width':'2.5','stroke-opacity':'.7','stroke-dasharray':'6 3'
     }));
   }
 }
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════════
    MOBILE FALLBACK
-═══════════════════════════════════════════════ */
+══════════════════════════════════════ */
 (function buildMobile(){
-  document.getElementById('mob').innerHTML = BRANCHES.map((b,i)=>`
+  document.getElementById('mob').innerHTML=BRANCHES.map((b,i)=>`
     <div class="mob-card">
       <div class="mob-hd" onclick="this.nextElementSibling.classList.toggle('open')">
         <span style="font-size:22px">${b.emoji}</span>
@@ -613,33 +595,30 @@ function drawSVG(){
     </div>`).join('');
 })();
 
-/* ═══════════════════════════════════════════════
+/* ══════════════════════════════════════
    AUDIO
-═══════════════════════════════════════════════ */
-let curBtn = null, reading = false;
+══════════════════════════════════════ */
+let curBtn=null, reading=false;
 
 function stopAll(){
-  window.speechSynthesis.cancel(); reading = false;
+  window.speechSynthesis.cancel(); reading=false;
   if(curBtn){ curBtn.classList.remove('playing'); curBtn.innerHTML='🔊 Écouter'; curBtn=null; }
   document.getElementById('btn-lire').textContent='▶ Lire tout';
-  document.querySelector('.c-audio-btn') && (document.querySelector('.c-audio-btn.playing')?.innerHTML='🔊 Écouter');
 }
 
 function speakNode(btn){
-  if(btn===curBtn && reading){ stopAll(); return; }
-  stopAll();
-  curBtn = btn;
-  btn.classList.add('playing');
-  btn.innerHTML='<span class="adot"></span> En cours…';
-  const u = new SpeechSynthesisUtterance(btn.dataset.text||'');
+  if(btn===curBtn&&reading){ stopAll(); return; }
+  stopAll(); curBtn=btn;
+  btn.classList.add('playing'); btn.innerHTML='<span class="adot"></span> En cours…';
+  const u=new SpeechSynthesisUtterance(btn.dataset.text||'');
   u.lang='fr-FR'; u.rate=.92; u.pitch=1;
-  u.onend  = () => { btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
-  u.onerror = () => { btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
+  u.onend=()=>{ btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
+  u.onerror=()=>{ btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
   reading=true; window.speechSynthesis.speak(u);
 }
 
 document.addEventListener('click', e=>{
-  const b = e.target.closest('.n-aud,.c-audio-btn');
+  const b=e.target.closest('.n-aud,.c-audio-btn');
   if(b) speakNode(b);
 });
 
@@ -655,7 +634,7 @@ document.getElementById('btn-lire').addEventListener('click', ()=>{
   function nxt(){
     if(idx>=texts.length||!reading){stopAll();return;}
     const u=new SpeechSynthesisUtterance(texts[idx++]);
-    u.lang='fr-FR';u.rate=.92;
+    u.lang='fr-FR'; u.rate=.92;
     u.onend=()=>{if(reading)nxt();}; u.onerror=stopAll;
     window.speechSynthesis.speak(u);
   }
@@ -671,16 +650,23 @@ setInterval(()=>{
   }
 },12000);
 
-/* ═══════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════ */
+/* ══════════════════════════════════════
+   INIT — run immediately, then again on load
+══════════════════════════════════════ */
 function init(){
   positionAll();
   requestAnimationFrame(drawSVG);
 }
+
+/* Run immediately (script at end of body = DOM ready) */
+init();
+
+/* Run again when fonts/images settle */
 window.addEventListener('load', init);
+
+/* Redraw on resize */
 let rt;
-window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(init,180); });
+window.addEventListener('resize', ()=>{ clearTimeout(rt); rt=setTimeout(init, 150); });
 </script>
 </body>
 </html>
