@@ -1,772 +1,686 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Conception Curriculaire — Carte Conceptuelle Multimédia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <style>
-    /* ══════════════════════════════════════════════════════
-       VARIABLES — PINK ONLY PALETTE
-    ══════════════════════════════════════════════════════ */
-    :root {
-      --bg:       #0c0208;
-      --bg2:      #180610;
-      --surface:  rgba(251,114,133,.05);
-      --border:   rgba(244,114,182,.1);
-      --text:     #fce7f3;
-      --muted:    rgba(253,164,175,.65);
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Conception Curriculaire 🎀 Ma Principessa</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --cream:#FFF8FB; --soft:#FFD6E7; --mid:#FFB3CC; --main:#FF85A1;
+  --deep:#E91E8C;  --deeper:#C2185B; --lav:#F3E5FF; --lav2:#CE93D8;
+  --text:#5D2E46;  --muted:#B07090; --white:#FFFFFF;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Nunito',sans-serif;color:var(--text);overflow-x:hidden}
 
-      /* pink/rose shades (9 distinct, same family) */
-      --r1: #fda4af;   /* rose-300   */
-      --r2: #fb7185;   /* rose-400   */
-      --r3: #f43f5e;   /* rose-500   */
-      --p1: #f9a8d4;   /* pink-300   */
-      --p2: #f472b6;   /* pink-400   */
-      --p3: #ec4899;   /* pink-500   */
-      --p4: #db2777;   /* pink-600   */
-      --p5: #be185d;   /* pink-700   */
-      --p6: #ff79c6;   /* hot pink   */
+body{
+  background:linear-gradient(150deg,#FFF5FB 0%,#FFE8F3 45%,#F8F0FF 100%);
+  min-height:100vh;
+}
 
-      /* central glow */
-      --glow: rgba(244,114,182,.45);
-    }
+/* ── floating bg deco ─────────────────────────────── */
+.bg-deco{position:fixed;pointer-events:none;z-index:0;opacity:.25;
+  font-size:22px;animation:floatD var(--dur,7s) ease-in-out infinite;}
+@keyframes floatD{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(12deg)}}
 
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+/* ── HEADER ───────────────────────────────────────── */
+header{
+  position:sticky;top:0;z-index:300;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(20px);
+  border-bottom:2.5px solid var(--soft);
+  padding:11px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.hd-left{display:flex;align-items:center;gap:12px}
+.hd-badge{
+  background:linear-gradient(135deg,var(--main),var(--deep));
+  color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  padding:5px 13px;border-radius:20px;
+}
+.hd-title{font-size:16px;font-weight:900;color:var(--text)}
+.hd-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.hd-ctrl{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  padding:7px 16px;border-radius:20px;border:2px solid var(--mid);
+  background:var(--white);color:var(--text);
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.btn:hover{background:var(--soft)}
+.btn-p{background:linear-gradient(135deg,var(--main),var(--deep));border-color:var(--deep);color:#fff}
+.btn-p:hover{opacity:.9;box-shadow:0 4px 14px rgba(233,30,140,.3)}
+.btn-stop{color:var(--deeper);border-color:var(--main)}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+/* ── HINT ─────────────────────────────────────────── */
+.hint{
+  text-align:center;padding:8px 16px;
+  font-size:12px;font-weight:700;color:var(--muted);
+  background:rgba(255,255,255,.5);border-bottom:1px solid var(--soft);
+}
 
-    /* animated background blobs */
-    body::before {
-      content:'';
-      position:fixed; inset:0;
-      background:
-        radial-gradient(ellipse at 20% 10%, rgba(236,72,153,.13) 0%, transparent 45%),
-        radial-gradient(ellipse at 80% 90%, rgba(219,39,119,.10) 0%, transparent 45%),
-        radial-gradient(ellipse at 60% 40%, rgba(244,114,182,.06) 0%, transparent 55%);
-      pointer-events:none; z-index:0;
-      animation: blobShift 18s ease-in-out infinite alternate;
-    }
-    @keyframes blobShift {
-      from { transform: scale(1) translateY(0); }
-      to   { transform: scale(1.06) translateY(-12px); }
-    }
+/* ── CANVAS WRAP (desktop mind map) ───────────────── */
+#map-wrap{
+  position:relative;
+  overflow-x:auto;overflow-y:visible;
+}
+#canvas{
+  position:relative;
+  width:1100px;        /* fixed internal width */
+  height:840px;
+  margin:0 auto;
+}
 
-    /* floating particles */
-    body::after {
-      content:'';
-      position:fixed; inset:0;
-      background-image:
-        radial-gradient(circle, rgba(249,168,212,.35) 1px, transparent 1px),
-        radial-gradient(circle, rgba(244,114,182,.22) 1px, transparent 1px);
-      background-size: 60px 60px, 100px 100px;
-      background-position: 0 0, 30px 30px;
-      pointer-events:none; z-index:0;
-      animation: particleDrift 25s linear infinite;
-      opacity: .4;
-    }
-    @keyframes particleDrift {
-      from { transform: translateY(0); }
-      to   { transform: translateY(-60px); }
-    }
+/* SVG on TOP of everything */
+#conn-svg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  z-index:60;          /* ← highest layer */
+  pointer-events:none;
+  overflow:visible;
+}
 
-    /* ══════════════════════════════════════════════════════
-       HEADER
-    ══════════════════════════════════════════════════════ */
-    header {
-      position:sticky; top:0; z-index:300;
-      background: rgba(12,2,8,.88);
-      backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(244,114,182,.15);
-      padding: 13px 28px;
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; flex-wrap:wrap;
-    }
-    .hd-left { display:flex; align-items:center; gap:12px; }
-    .hd-badge {
-      font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
-      color:#f9a8d4; background:rgba(249,168,212,.12);
-      padding:4px 11px; border-radius:20px; border:1px solid rgba(249,168,212,.28);
-    }
-    .hd-title { font-size:16px; font-weight:800; letter-spacing:-.02em; color:#fce7f3; }
-    .hd-sub   { font-size:11px; color:var(--muted); margin-top:1px; }
-    .hd-controls { display:flex; gap:8px; flex-wrap:wrap; }
+/* ── CENTRAL NODE ─────────────────────────────────── */
+#central{
+  position:absolute;
+  left:550px; top:420px;          /* positioned by JS */
+  transform:translate(-50%,-50%);
+  z-index:40;
+  width:210px;
+  animation:floatC 5s ease-in-out infinite;
+}
+@keyframes floatC{
+  0%,100%{transform:translate(-50%,-50%) translateY(0)}
+  50%{transform:translate(-50%,-50%) translateY(-11px)}
+}
+.c-card{
+  background:linear-gradient(145deg,#FF85A1,#E91E8C,#C2185B);
+  border-radius:26px;padding:22px 18px;text-align:center;
+  box-shadow:0 8px 32px rgba(233,30,140,.45),0 0 0 6px rgba(255,133,161,.18);
+  position:relative;overflow:visible;
+}
+.bow-top{
+  position:absolute;top:-16px;left:50%;transform:translateX(-50%);
+  font-size:32px;animation:bowB 2.5s ease-in-out infinite;
+}
+@keyframes bowB{0%,100%{transform:translateX(-50%) rotate(-8deg)}50%{transform:translateX(-50%) rotate(8deg) scale(1.1)}}
+.c-emoji{font-size:34px;margin-bottom:6px}
+.c-title{font-size:13px;font-weight:900;color:#fff;letter-spacing:.02em;line-height:1.3}
+.c-sub{font-size:9px;color:rgba(255,255,255,.8);font-weight:700;margin:5px 0 12px;letter-spacing:.06em;text-transform:uppercase}
+.c-audio-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:20px;border:none;
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);
+  color:#fff;font-size:10px;font-weight:800;font-family:'Nunito',sans-serif;
+  cursor:pointer;transition:background .2s;
+}
+.c-audio-btn:hover{background:rgba(255,255,255,.35)}
+.c-audio-btn.playing{background:rgba(255,255,255,.4)}
 
-    .btn {
-      display:inline-flex; align-items:center; gap:6px;
-      padding:7px 15px; border-radius:9px; border:1px solid rgba(244,114,182,.18);
-      background:rgba(244,114,182,.07); color:var(--text);
-      font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
-      cursor:pointer; transition:all .22s; white-space:nowrap;
-    }
-    .btn:hover { background:rgba(244,114,182,.16); border-color:rgba(244,114,182,.38); }
-    .btn-primary { background:rgba(236,72,153,.18); border-color:rgba(236,72,153,.4); color:#f9a8d4; }
-    .btn-primary:hover { background:rgba(236,72,153,.3); }
-    .btn-primary.active { background:rgba(236,72,153,.4); box-shadow:0 0 14px rgba(236,72,153,.3); }
-    .btn-stop { background:rgba(190,24,93,.15); border-color:rgba(190,24,93,.35); color:#fda4af; }
-    .btn-stop:hover { background:rgba(190,24,93,.28); }
+/* ── BRANCH NODES ─────────────────────────────────── */
+.node{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  z-index:40;
+  width:180px;
+  cursor:pointer;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.node:hover{transform:translate(-50%,-50%) scale(1.09)}
+.node.sel{transform:translate(-50%,-50%) scale(1.06)}
 
-    /* ══════════════════════════════════════════════════════
-       MAIN
-    ══════════════════════════════════════════════════════ */
-    main {
-      position:relative; z-index:1;
-      padding: 44px 28px 60px;
-      max-width: 1380px;
-      margin: 0 auto;
-    }
+.nc{  /* node card */
+  background:rgba(255,255,255,.92);
+  border:2.5px solid var(--mid);
+  border-radius:18px;
+  padding:12px 13px 10px;
+  box-shadow:0 4px 18px rgba(255,133,161,.18);
+  backdrop-filter:blur(8px);
+  transition:border-color .25s,box-shadow .25s;
+  position:relative;
+  overflow:visible;
+}
+/* tiny bow on each node card */
+.nc::before{content:'🌸';position:absolute;top:-10px;right:8px;font-size:14px;opacity:.8}
+.node.sel .nc{border-color:var(--deep);box-shadow:0 6px 28px rgba(233,30,140,.3)}
 
-    /* SVG connection layer */
-    #conn-svg {
-      position:absolute;
-      top:0; left:0;
-      width:100%; height:100%;
-      pointer-events:none;
-      z-index:0;
-      overflow:visible;
-    }
+.n-ico{font-size:18px;margin-bottom:3px}
+.n-ttl{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--deep);margin-bottom:2px;line-height:1.3}
+.n-sub{font-size:9.5px;color:var(--muted);line-height:1.4}
+.n-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.n-aud{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:3px 8px;border-radius:20px;border:none;
+  background:var(--soft);color:var(--text);
+  font-size:9px;font-weight:800;font-family:'Nunito',sans-serif;
+  cursor:pointer;transition:background .2s;
+}
+.n-aud:hover{background:var(--mid)}
+.n-aud.playing{background:var(--main);color:#fff}
+.n-arrow{font-size:10px;color:var(--muted);font-weight:700}
 
-    /* ══════════════════════════════════════════════════════
-       CENTRAL NODE
-    ══════════════════════════════════════════════════════ */
-    #central {
-      position:relative; z-index:2;
-      text-align:center; margin-bottom:48px;
-      animation: floatNode 5s ease-in-out infinite;
-    }
-    @keyframes floatNode {
-      0%,100% { transform:translateY(0); }
-      50%      { transform:translateY(-8px); }
-    }
+@keyframes adotPulse{0%,100%{opacity:1}50%{opacity:.2}}
+.adot{display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;animation:adotPulse 1s infinite}
 
-    .c-card {
-      display:inline-flex; flex-direction:column; align-items:center;
-      gap:14px; padding:36px 52px;
-      background: linear-gradient(140deg, rgba(236,72,153,.18), rgba(219,39,119,.22));
-      border:1px solid rgba(244,114,182,.38);
-      border-radius:26px; max-width:660px;
-      position:relative;
-      box-shadow:
-        0 0 0 1px rgba(244,114,182,.1),
-        0 0 40px rgba(236,72,153,.2),
-        0 0 80px rgba(219,39,119,.1);
-      animation: fadeUp .6s ease both;
-    }
-    /* glowing ring */
-    .c-card::before {
-      content:'';
-      position:absolute; inset:-2px;
-      border-radius:28px;
-      background: conic-gradient(from 0deg, #f472b6, #ec4899, #db2777, #f472b6);
-      z-index:-1; opacity:.35;
-      animation: spinRing 6s linear infinite;
-    }
-    @keyframes spinRing {
-      from { transform:rotate(0deg); }
-      to   { transform:rotate(360deg); }
-    }
+/* ── DETAIL PANEL ─────────────────────────────────── */
+#detail{
+  max-height:0;overflow:hidden;
+  transition:max-height .55s cubic-bezier(.4,0,.2,1);
+  background:rgba(255,255,255,.88);
+  border-top:2px solid var(--soft);
+  backdrop-filter:blur(16px);
+}
+#detail.open{max-height:1400px}
+.det-inner{max-width:900px;margin:0 auto;padding:30px 24px 40px}
+.det-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px}
+.det-left{display:flex;align-items:center;gap:12px}
+.det-big{font-size:38px}
+.det-ttl{font-size:19px;font-weight:900;color:var(--text)}
+.det-sub{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.det-cls{
+  padding:7px 14px;border-radius:20px;border:2px solid var(--mid);
+  background:var(--white);color:var(--text);
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;flex-shrink:0;
+}
+.det-cls:hover{background:var(--soft)}
+.det-desc{
+  font-size:14px;color:var(--text);line-height:1.75;
+  padding:14px 16px;background:var(--cream);
+  border-radius:12px;border-left:4px solid var(--main);
+  margin-bottom:20px;
+}
+.det-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.det-ch{background:var(--white);border:1.5px solid var(--soft);border-radius:14px;padding:13px}
+.det-ch-hd{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.det-ch-ico{font-size:17px}
+.det-ch-ttl{font-size:10px;font-weight:900;color:var(--deeper);text-transform:uppercase;letter-spacing:.05em}
+.det-ch-txt{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:4px}
+.det-items{list-style:none;display:flex;flex-direction:column;gap:3px}
+.det-items li{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text)}
+.det-items li::before{content:'🌸';flex-shrink:0;font-size:10px;margin-top:1px}
 
-    .c-emoji  { font-size:54px; line-height:1; filter:drop-shadow(0 0 12px rgba(244,114,182,.7)); }
-    .c-title  {
-      font-size:26px; font-weight:900; letter-spacing:-.03em;
-      background: linear-gradient(135deg,#f9a8d4,#f472b6,#ec4899);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    }
-    .c-sub    { font-size:12px; color:var(--muted); font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
-    .c-desc   { font-size:14px; color:#fce7f3cc; line-height:1.75; max-width:460px; }
-
-    .audio-btn {
-      display:inline-flex; align-items:center; gap:7px;
-      padding:7px 16px; background:rgba(244,114,182,.1);
-      border:1px solid rgba(244,114,182,.22);
-      border-radius:20px; color:var(--muted);
-      font-size:12px; font-weight:600;
-      cursor:pointer; transition:all .2s;
-    }
-    .audio-btn:hover { background:rgba(244,114,182,.2); color:var(--text); border-color:rgba(244,114,182,.45); }
-    .audio-btn.playing {
-      background:rgba(236,72,153,.25); border-color:rgba(236,72,153,.55); color:#f9a8d4;
-      box-shadow:0 0 12px rgba(236,72,153,.25);
-    }
-
-    @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
-    .audio-dot {
-      display:inline-block; width:6px; height:6px; border-radius:50%;
-      background:#f472b6; animation:dotPulse 1.1s ease-in-out infinite;
-    }
-
-    /* ══════════════════════════════════════════════════════
-       GRID
-    ══════════════════════════════════════════════════════ */
-    #grid {
-      position:relative; z-index:2;
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:22px;
-    }
-    @media(max-width:1100px){ #grid{ grid-template-columns:repeat(2,1fr); } }
-    @media(max-width:640px) { #grid{ grid-template-columns:1fr; } }
-
-    /* ══════════════════════════════════════════════════════
-       BRANCH CARD
-    ══════════════════════════════════════════════════════ */
-    .card {
-      position:relative; z-index:2;
-      background:rgba(12,2,8,.6);
-      border:1px solid var(--border);
-      border-radius:18px; overflow:hidden;
-      backdrop-filter:blur(12px);
-      transition: transform .28s cubic-bezier(.34,1.56,.64,1),
-                  border-color .28s, box-shadow .28s;
-      animation: fadeUp .5s ease both;
-    }
-    .card::before {
-      content:'';
-      position:absolute; inset:0;
-      background: linear-gradient(135deg, rgba(255,255,255,.025), transparent);
-      pointer-events:none;
-    }
-    .card:hover {
-      transform: translateY(-5px) scale(1.015);
-      box-shadow: 0 16px 48px rgba(0,0,0,.5), 0 0 0 1px var(--cc);
-    }
-    .card.open { border-color:var(--cc); box-shadow:0 0 24px color-mix(in srgb, var(--cc) 30%, transparent); }
-
-    .card:nth-child(1){animation-delay:.07s} .card:nth-child(2){animation-delay:.12s}
-    .card:nth-child(3){animation-delay:.17s} .card:nth-child(4){animation-delay:.22s}
-    .card:nth-child(5){animation-delay:.27s} .card:nth-child(6){animation-delay:.32s}
-    .card:nth-child(7){animation-delay:.37s} .card:nth-child(8){animation-delay:.42s}
-    .card:nth-child(9){animation-delay:.47s}
-
-    /* node ID dot (used as connection anchor hint) */
-    .card::after {
-      content:'';
-      position:absolute; top:50%; left:-5px; transform:translateY(-50%);
-      width:8px; height:8px; border-radius:50%;
-      background:var(--cc); opacity:.6;
-      box-shadow: 0 0 8px var(--cc);
-    }
-
-    .card-header {
-      display:flex; align-items:center; gap:12px;
-      padding:18px 16px 18px 20px;
-      cursor:pointer; user-select:none; position:relative;
-    }
-    .card-header::before {
-      content:'';
-      position:absolute; left:0; top:0; bottom:0; width:3px;
-      background:var(--cc); border-radius:3px 0 0 3px;
-      box-shadow:0 0 8px var(--cc);
-    }
-
-    .c-emoji-sm { font-size:26px; flex-shrink:0; }
-    .card-meta  { flex:1; min-width:0; }
-    .card-title {
-      font-size:11px; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
-      color:var(--cc); margin-bottom:3px;
-      text-shadow:0 0 12px color-mix(in srgb, var(--cc) 50%, transparent);
-    }
-    .card-sub {
-      font-size:11px; color:var(--muted); line-height:1.4;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .card-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-    .chevron { font-size:13px; color:var(--muted); transition:transform .35s cubic-bezier(.34,1.56,.64,1); }
-    .card.open .chevron { transform:rotate(180deg); }
-
-    /* card body — CSS grid trick for smooth open/close */
-    .card-body {
-      display:grid; grid-template-rows:0fr;
-      transition: grid-template-rows .4s cubic-bezier(.4,0,.2,1);
-    }
-    .card.open .card-body { grid-template-rows:1fr; }
-    .card-inner { overflow:hidden; }
-
-    .card-desc {
-      padding:0 18px 14px;
-      font-size:13px; color:rgba(253,164,175,.7); line-height:1.65;
-      border-bottom:1px solid rgba(244,114,182,.08);
-    }
-    .sub-list { padding:14px 18px; display:flex; flex-direction:column; gap:10px; }
-
-    .sub-node {
-      background:rgba(244,114,182,.04);
-      border:1px solid rgba(244,114,182,.08);
-      border-left:2px solid var(--cc);
-      border-radius:0 9px 9px 0;
-      padding:11px 13px;
-      transition:background .2s;
-    }
-    .sub-node:hover { background:rgba(244,114,182,.08); }
-    .sub-head { display:flex; align-items:center; gap:7px; margin-bottom:6px; }
-    .sub-emoji { font-size:14px; }
-    .sub-title { font-size:11px; font-weight:700; color:#fce7f3cc; letter-spacing:.05em; text-transform:uppercase; }
-    .sub-text  { font-size:12px; color:var(--muted); line-height:1.6; }
-    .sub-items { list-style:none; margin-top:5px; display:flex; flex-direction:column; gap:3px; }
-    .sub-items li {
-      display:flex; align-items:flex-start; gap:7px;
-      font-size:12px; color:var(--muted); line-height:1.55;
-    }
-    .sub-items li::before {
-      content:'→'; color:var(--cc); flex-shrink:0; margin-top:1px; font-size:10px;
-      text-shadow:0 0 6px var(--cc);
-    }
-
-    /* ══════════════════════════════════════════════════════
-       SVG CONNECTION STYLES  (applied via JS classes)
-    ══════════════════════════════════════════════════════ */
-    .conn-main {
-      fill:none; stroke-width:1.8; stroke-opacity:.55;
-      stroke-linecap:round;
-    }
-    .conn-side {
-      fill:none; stroke-width:1.2; stroke-opacity:.35;
-      stroke-linecap:round; stroke-dasharray:5 4;
-    }
-    .conn-dot {
-      animation: connPulse 2.8s ease-in-out infinite;
-    }
-    @keyframes connPulse { 0%,100%{opacity:.8;r:3} 50%{opacity:.3;r:2} }
-    @keyframes drawLine {
-      from { stroke-dashoffset:1; }
-      to   { stroke-dashoffset:0; }
-    }
-
-    /* ══════════════════════════════════════════════════════
-       FOOTER
-    ══════════════════════════════════════════════════════ */
-    footer {
-      position:relative; z-index:1;
-      text-align:center; padding:28px;
-      font-size:11px; color:var(--muted);
-      border-top:1px solid rgba(244,114,182,.1);
-      margin-top:16px;
-    }
-    footer span { color:#f472b6; }
-
-    /* shared animation */
-    @keyframes fadeUp {
-      from { opacity:0; transform:translateY(22px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-
-    @media(max-width:480px){
-      header{padding:11px 14px;} main{padding:28px 14px 44px;}
-      .c-card{padding:24px 18px;} .c-title{font-size:20px;}
-      .btn{font-size:11px; padding:6px 11px;}
-    }
-  </style>
+/* ── MOBILE ───────────────────────────────────────── */
+@media(max-width:768px){
+  #map-wrap,#detail{display:none}
+  .mob{display:block!important;padding:16px 14px 60px}
+}
+.mob{display:none}
+.mob-card{background:var(--white);border:2px solid var(--soft);border-radius:16px;margin-bottom:12px;overflow:hidden}
+.mob-hd{display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
+.mob-ttl{font-size:13px;font-weight:800;color:var(--deep)}
+.mob-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.mob-body{max-height:0;overflow:hidden;transition:max-height .4s}
+.mob-body.open{max-height:700px}
+.mob-bd-in{padding:0 14px 14px}
+</style>
 </head>
 <body>
 
-<!-- ═══════════════════ HEADER ═══════════════════ -->
+<!-- bg decorations -->
+<div class="bg-deco" style="top:8%;left:4%;--dur:7s">🎀</div>
+<div class="bg-deco" style="top:18%;right:6%;--dur:9s;animation-delay:2s">⭐</div>
+<div class="bg-deco" style="top:55%;left:2%;--dur:8s;animation-delay:1s">🌸</div>
+<div class="bg-deco" style="top:72%;right:4%;--dur:10s;animation-delay:3s">🎀</div>
+<div class="bg-deco" style="top:42%;right:1%;--dur:7.5s;animation-delay:1.5s">💕</div>
+<div class="bg-deco" style="top:88%;left:48%;--dur:11s;animation-delay:4s">⭐</div>
+<div class="bg-deco" style="top:30%;left:1%;--dur:6.5s;animation-delay:.5s">🌷</div>
+
+<!-- HEADER -->
 <header>
   <div class="hd-left">
-    <span class="hd-badge">Unité 2</span>
+    <span class="hd-badge">🎀 Unité 2</span>
     <div>
       <div class="hd-title">Conception Curriculaire</div>
       <div class="hd-sub">Processus · Modèles · Méthodologies</div>
     </div>
   </div>
-  <div class="hd-controls">
-    <button class="btn btn-primary" id="btn-lire">▶ Lire tout</button>
-    <button class="btn" id="btn-expand">↕ Tout développer</button>
+  <div class="hd-ctrl">
+    <button class="btn btn-p" id="btn-lire">▶ Lire tout</button>
     <button class="btn btn-stop" id="btn-stop">⏹ Arrêter</button>
   </div>
 </header>
+<div class="hint">🌸 Clique sur une carte pour voir les détails &nbsp;·&nbsp; 🔊 Pour écouter l'audio de chaque section</div>
 
-<!-- ═══════════════════ MAIN ═══════════════════ -->
-<main id="main-wrap">
+<!-- CANVAS (desktop mind map) -->
+<div id="map-wrap">
+  <div id="canvas">
+    <!-- SVG drawn by JS on top -->
+    <svg id="conn-svg" aria-hidden="true"></svg>
 
-  <!-- SVG connections drawn by JS -->
-  <svg id="conn-svg" aria-hidden="true"></svg>
-
-  <!-- Central concept -->
-  <div id="central">
-    <div class="c-card">
-      <div class="c-emoji">🎓</div>
-      <div class="c-title">CONCEPTION CURRICULAIRE</div>
-      <div class="c-sub">Processus · Modèles · Méthodologies</div>
-      <div class="c-desc">
-        Processus dynamique, continu et participatif visant à organiser
-        l'enseignement-apprentissage selon les besoins sociaux, culturels et éducatifs.
+    <!-- Central node -->
+    <div id="central">
+      <div class="c-card">
+        <span class="bow-top">🎀</span>
+        <div class="c-emoji">🎓</div>
+        <div class="c-title">CONCEPTION CURRICULAIRE</div>
+        <div class="c-sub">Processus · Modèles · Méthodologies</div>
+        <button class="c-audio-btn"
+          data-text="La conception curriculaire est un processus dynamique, continu et participatif. Il vise à structurer les processus éducatifs, à répondre aux besoins sociaux et culturels, à organiser l'enseignement et l'apprentissage, et à construire une proposition curriculaire cohérente. Le curriculum est flexible, adapté au contexte, et orienté vers le développement des étudiants et de la société.">
+          🔊 Écouter
+        </button>
       </div>
-      <button class="audio-btn" data-text="La conception curriculaire est un processus dynamique, continu et participatif. Il vise à structurer les processus éducatifs, à répondre aux besoins sociaux et culturels, à organiser l'enseignement et l'apprentissage, et à construire une proposition curriculaire cohérente. Le curriculum est flexible, adapté au contexte, et orienté vers le développement des étudiants et de la société.">
-        🔊 Écouter l'introduction
-      </button>
     </div>
+
+    <!-- Nodes appended by JS -->
   </div>
+</div>
 
-  <!-- 9 branch cards (rendered by JS) -->
-  <div id="grid"></div>
+<!-- DETAIL PANEL -->
+<div id="detail"><div class="det-inner" id="det-inner"></div></div>
 
-</main>
+<!-- MOBILE FALLBACK -->
+<div class="mob" id="mob"></div>
 
-<footer>
-  Carte Conceptuelle Multimédia — Unité 2 &nbsp;·&nbsp;
-  <span>Audio fr-FR · Web Speech API</span>
-</footer>
-
-<!-- ═══════════════════ DATA + JS ═══════════════════ -->
 <script>
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    DATA
-════════════════════════════════════════════════════════ */
-const COLORS = ['#fda4af','#fb7185','#f43f5e','#f9a8d4','#f472b6','#ec4899','#db2777','#be185d','#ff79c6'];
+═══════════════════════════════════════════════ */
+const PINK = ['#FFB3CC','#FF85A1','#E91E8C','#CE93D8','#FF85A1','#E91E8C','#C2185B','#FF79B0','#E91E8C'];
 
 const BRANCHES = [
   {
-    emoji:'🏛️', title:'FONDEMENTS DU CURRICULUM',
-    sub:'Concepts · Évolution · Absence de méthode universelle',
-    desc:'Le curriculum a évolué historiquement. Il n\'existe pas une méthodologie universelle de conception curriculaire. Il doit être flexible, adaptée au contexte.',
+    emoji:'🏛️',title:'FONDEMENTS DU CURRICULUM',
+    sub:'Concepts · Évolution · Méthode universelle',
+    desc:'Le curriculum a évolué historiquement. Il existe plusieurs concepts du curriculum. Il n\'existe pas une méthodologie universelle de conception curriculaire. Il doit être flexible et adapté au contexte.',
     audio:'Les fondements du curriculum. Il existe plusieurs concepts du curriculum, mais aucune méthodologie universelle ne s\'impose. Le curriculum a évolué historiquement en répondant aux transformations sociales et culturelles. Il doit être flexible, adapté au contexte, et orienté vers le développement des étudiants et de la société.',
-    children:[
-      {emoji:'🎯',title:'Objectifs de la conception',items:['Structurer les processus éducatifs','Répondre aux besoins sociaux et culturels','Organiser l\'enseignement-apprentissage','Construire une proposition curriculaire cohérente']},
-      {emoji:'✨',title:'Caractéristiques',items:['Flexible','Adaptée au contexte','Orientée vers le développement des étudiants et de la société']},
-      {emoji:'📅',title:'Évolution historique',text:'Le curriculum a évolué en répondant aux transformations sociales, scientifiques, technologiques, politiques et culturelles.'}
+    kids:[
+      {ico:'🎯',ttl:'Objectifs',items:['Structurer les processus éducatifs','Répondre aux besoins sociaux et culturels','Organiser l\'enseignement-apprentissage','Construire une proposition curriculaire cohérente']},
+      {ico:'✨',ttl:'Caractéristiques',items:['Flexible','Adaptée au contexte','Orientée vers le développement des étudiants et de la société']},
+      {ico:'📅',ttl:'Évolution historique',txt:'Le curriculum évolue en répondant aux transformations sociales, scientifiques, technologiques, politiques et culturelles.'}
     ]
   },
   {
-    emoji:'⚙️', title:'PROCESSUS CURRICULAIRES',
+    emoji:'⚙️',title:'PROCESSUS CURRICULAIRES',
     sub:'Gestion · Conception · Organisation',
     desc:'Trois dimensions complémentaires: administrative (gestion), créative (conception) et technique (organisation).',
-    audio:'Les processus curriculaires s\'articulent autour de trois dimensions. La gestion curriculaire, dimension administrative, assure le contrôle et la planification institutionnelle. Selon Franco et al. 2000, le curriculum répond aux besoins de la société. La conception curriculaire, dimension créative, relie le social et l\'institutionnel. Selon Guarro en 2002, c\'est un processus non linéaire, participatif, basé sur un flux continu de décisions. L\'organisation curriculaire, dimension technique, systématise les contenus et les expériences d\'apprentissage à travers la séquentialité et la structuration.',
-    children:[
-      {emoji:'🏢',title:'Gestion — Dimension administrative',text:'Franco et al. (2000): répond aux besoins sociaux, tient compte des changements scientifiques, technologiques et culturels.',items:['Mécanismes de contrôle','Contextes sociaux et technologiques','Planification institutionnelle','Construction d\'un citoyen intégral']},
-      {emoji:'💡',title:'Conception — Dimension créative',text:'Guarro (2002): processus non linéaire, participatif, flux continu de décisions.',items:['Accords disciplinaires','Stratégies pédagogiques','Rôles et responsabilités','Environnements d\'apprentissage']},
-      {emoji:'🔧',title:'Organisation — Dimension technique',text:'Systématisation progressive reliant connaissances et expériences d\'apprentissage.',items:['Séquentialité: ordre des contenus','Structuration: relations entre contenus','Praticité et cohérence','Contrôle et rationalisation']}
+    audio:'Les processus curriculaires s\'articulent autour de trois dimensions. La gestion curriculaire, dimension administrative, assure le contrôle et la planification institutionnelle. Selon Franco et al. 2000, le curriculum répond aux besoins de la société. La conception curriculaire, dimension créative, relie le social et l\'institutionnel. Selon Guarro en 2002, c\'est un processus non linéaire, participatif. L\'organisation curriculaire, dimension technique, systématise les contenus à travers la séquentialité et la structuration.',
+    kids:[
+      {ico:'🏢',ttl:'Gestion — Dimension administrative',txt:'Franco et al. (2000): répond aux besoins sociaux, tient compte des changements scientifiques, technologiques et culturels.',items:['Mécanismes de contrôle','Planification institutionnelle','Construction d\'un citoyen intégral']},
+      {ico:'💡',ttl:'Conception — Dimension créative',txt:'Guarro (2002): processus non linéaire, participatif, flux continu de décisions.',items:['Stratégies pédagogiques','Rôles et responsabilités','Environnements d\'apprentissage']},
+      {ico:'🔧',ttl:'Organisation — Dimension technique',txt:'Systématisation progressive reliant connaissances et expériences.',items:['Séquentialité: ordre des contenus','Structuration: relations entre contenus','Praticité et cohérence']}
     ]
   },
   {
-    emoji:'🗺️', title:'MODÈLES DE CONCEPTION',
-    sub:'Cascade · Opportuniste · Couches de nécessité',
+    emoji:'🗺️',title:'MODÈLES DE CONCEPTION',
+    sub:'Cascade · Opportuniste · Couches',
     desc:'Toutes les approches couvrent l\'analyse des besoins, l\'environnement, les objectifs, les contenus, la méthodologie et l\'évaluation.',
-    audio:'Les modèles de conception curriculaire. Le modèle en cascade est séquentiel et rigoureux: analyse des besoins, environnement, objectifs, contenus, méthodologie. L\'approche opportuniste ciblée suit la devise faire ce qu\'on peut quand on peut. On enseigne d\'abord, on ajuste ensuite. Le modèle des couches de nécessité de Tessmer et Wedman en 1990 vise à atteindre un niveau suffisamment bon pour le moment, avec une amélioration progressive.',
-    children:[
-      {emoji:'🌊',title:'Modèle en cascade',text:'Progression séquentielle. Chaque étape devient l\'entrée de la suivante. Utilisé pour les manuels scolaires.',items:['Analyse des besoins','Analyse de l\'environnement','Objectifs','Contenus','Méthodologie','Préparation des leçons']},
-      {emoji:'🎯',title:'Approche opportuniste ciblée',text:'"Faire ce qu\'on peut quand on peut." Enseigner d\'abord, ajuster ensuite.',items:['Format réalisé en premier','Amélioration progressive','Flexible et réaliste','Peut laisser des parties incomplètes']},
-      {emoji:'🧅',title:'Couches de nécessité — Tessmer & Wedman (1990)',text:'"Suffisamment bon pour le moment." Critique des modèles rigides.',items:['Identifier la contrainte principale','Déterminer le besoin urgent','Sélectionner les contenus essentiels','Choisir un format simple','Révisions progressives']}
+    audio:'Les modèles de conception curriculaire. Le modèle en cascade est séquentiel et rigoureux. L\'approche opportuniste ciblée suit la devise faire ce qu\'on peut quand on peut. Le modèle des couches de nécessité de Tessmer et Wedman en 1990 vise un niveau suffisamment bon pour le moment, avec une amélioration progressive.',
+    kids:[
+      {ico:'🌊',ttl:'Modèle en cascade',txt:'Progression séquentielle. Chaque étape devient l\'entrée de la suivante.',items:['Analyse des besoins','Analyse de l\'environnement','Objectifs → Contenus → Méthodologie']},
+      {ico:'🎯',ttl:'Approche opportuniste ciblée',txt:'"Faire ce qu\'on peut quand on peut." Enseigner d\'abord, ajuster ensuite.',items:['Format réalisé en premier','Amélioration progressive','Flexible et réaliste']},
+      {ico:'🧅',ttl:'Couches de nécessité — Tessmer & Wedman (1990)',txt:'"Suffisamment bon pour le moment." Critique des modèles rigides.',items:['Identifier la contrainte principale','Sélectionner les contenus essentiels','Révisions progressives']}
     ]
   },
   {
-    emoji:'🗣️', title:'CURRICULUM EN LANGUES',
-    sub:'Sens large · Sens restreint (Syllabus)',
-    desc:'Le curriculum en langues: sens large (ensemble du processus pédagogique) ou sens restreint (syllabus, itinéraires d\'enseignement-apprentissage).',
-    audio:'Le curriculum en langues. Dans un sens large, le curriculum inclut la planification, la méthodologie, les décisions pédagogiques, le rôle du professeur et de l\'apprenant, la motivation, et les facteurs spatiaux et temporels. Dans un sens restreint, il correspond au syllabus, c\'est-à-dire l\'organisation des contenus et les itinéraires d\'enseignement-apprentissage.',
-    children:[
-      {emoji:'🌐',title:'Sens large — Ensemble du processus',items:['Planification','Méthodologie','Décisions pédagogiques','Rôle du professeur','Rôle de l\'apprenant','Motivation','Facteurs spatiaux et temporels']},
-      {emoji:'📋',title:'Sens restreint — Syllabus',text:'Compris comme forme du curriculum development.',items:['Organisation des contenus','Itinéraires d\'enseignement-apprentissage']}
+    emoji:'🗣️',title:'CURRICULUM EN LANGUES',
+    sub:'Sens large · Sens restreint',
+    desc:'Sens large: ensemble du processus pédagogique. Sens restreint: syllabus, organisation des contenus et itinéraires d\'enseignement-apprentissage.',
+    audio:'Le curriculum en langues. Dans un sens large, le curriculum inclut la planification, la méthodologie, les décisions pédagogiques, le rôle du professeur et de l\'apprenant, la motivation, et les facteurs spatiaux et temporels. Dans un sens restreint, il correspond au syllabus, l\'organisation des contenus et les itinéraires d\'enseignement-apprentissage.',
+    kids:[
+      {ico:'🌐',ttl:'Sens large — Ensemble du processus',items:['Planification','Méthodologie','Décisions pédagogiques','Rôle du professeur et de l\'apprenant','Motivation','Facteurs spatiaux et temporels']},
+      {ico:'📋',ttl:'Sens restreint — Syllabus',txt:'Compris comme forme du curriculum development.',items:['Organisation des contenus','Itinéraires d\'enseignement-apprentissage']}
     ]
   },
   {
-    emoji:'📈', title:'ÉVOLUTION DES SYLLABUS',
-    sub:'Années 1960 → Syllabus fonctionnels',
-    desc:'Les syllabus ont évolué des aspects linguistiques structuraux vers la communication réelle et les fonctions communicatives.',
-    audio:'L\'évolution des syllabus. Dans les années 1960, l\'accent était mis sur les aspects linguistiques et les compétences langagières. Dans les années 1970, face à la difficulté d\'utiliser la langue en dehors de la salle de classe, une nouvelle vision apparaît: l\'usage réel de la langue et la communication. C\'est ainsi qu\'apparaissent les syllabus fonctionnels, où la langue est utilisée selon les intentions et les buts communicatifs.',
-    children:[
-      {emoji:'📌',title:'Années 1960',items:['Accent sur les aspects linguistiques','Compétences langagières structurales','Approche structuraliste']},
-      {emoji:'💬',title:'Années 1970 — Vers la communication',text:'Problème: difficulté d\'utiliser la langue hors de la salle de classe.',items:['Usage réel de la langue','Communication authentique','Apparition des syllabus fonctionnels']},
-      {emoji:'📢',title:'Syllabus fonctionnels',text:'La langue est utilisée selon les intentions et les buts communicatifs.',items:['Fonctions communicatives','Intentions du locuteur','Contextes réels d\'usage']}
+    emoji:'📈',title:'ÉVOLUTION DES SYLLABUS',
+    sub:'1960 → Syllabus fonctionnels',
+    desc:'Des aspects linguistiques structuraux des années 1960 vers la communication réelle et les fonctions communicatives des années 1970.',
+    audio:'L\'évolution des syllabus. Dans les années 1960, l\'accent était mis sur les aspects linguistiques et les compétences langagières. Dans les années 1970, face à la difficulté d\'utiliser la langue hors de la salle de classe, une nouvelle vision apparaît: l\'usage réel de la langue et la communication. C\'est ainsi qu\'apparaissent les syllabus fonctionnels.',
+    kids:[
+      {ico:'📌',ttl:'Années 1960',items:['Accent sur les aspects linguistiques','Compétences langagières structurales']},
+      {ico:'💬',ttl:'Années 1970',txt:'Difficultés d\'utiliser la langue hors classe. Vers la communication authentique.',items:['Usage réel de la langue','Communication authentique','Apparition des syllabus fonctionnels']},
+      {ico:'📢',ttl:'Syllabus fonctionnels',txt:'La langue est utilisée selon les intentions et buts communicatifs.',items:['Fonctions communicatives','Contextes réels d\'usage']}
     ]
   },
   {
-    emoji:'🧭', title:'TENDANCES CURRICULAIRES',
+    emoji:'🧭',title:'TENDANCES CURRICULAIRES',
     sub:'Besoins · Produits · Processus · Clark',
-    desc:'Trois classifications des tendances curriculaires selon Clark, l\'orientation produit/processus, et les besoins des apprenants.',
-    audio:'Les tendances curriculaires. Une première classification distingue les programmes basés sur les besoins et ceux construits par les interactions en classe. Une deuxième classification oppose les syllabus orientés vers les produits, grammaticaux et fonctionnels, aux syllabus orientés vers les processus, comme les tâches. Clark distingue trois orientations: l\'humanisme classique, le reconstructionnisme et le progressivisme.',
-    children:[
-      {emoji:'1️⃣',title:'1ère classification — Selon les besoins',items:['Programme basé sur les besoins des apprenants','Programme construit par les interactions en classe']},
-      {emoji:'2️⃣',title:'2ème classification — Produits vs Processus',items:['Produits: syllabus grammaticaux','Produits: syllabus fonctionnels','Processus: syllabus basés sur les tâches']},
-      {emoji:'3️⃣',title:'3ème classification — Clark',items:['Humanisme classique: analyse de la langue cible','Reconstructionnisme: importance des objectifs','Progressivisme: centré sur le processus d\'apprentissage']}
+    desc:'Trois classifications: selon les besoins, selon l\'orientation produit/processus, et selon Clark (humanisme classique, reconstructionnisme, progressivisme).',
+    audio:'Les tendances curriculaires. Une première classification distingue les programmes selon les besoins et les interactions. Une deuxième oppose les syllabus vers les produits aux syllabus vers les processus. Clark distingue trois orientations: l\'humanisme classique, le reconstructionnisme et le progressivisme.',
+    kids:[
+      {ico:'1️⃣',ttl:'Selon les besoins',items:['Programme basé sur les besoins des apprenants','Programme construit par les interactions en classe']},
+      {ico:'2️⃣',ttl:'Produits vs Processus',items:['Produits: syllabus grammaticaux et fonctionnels','Processus: syllabus basés sur les tâches']},
+      {ico:'3️⃣',ttl:'Clark — 3 orientations',items:['Humanisme classique: analyse de la langue cible','Reconstructionnisme: importance des objectifs','Progressivisme: centré sur le processus d\'apprentissage']}
     ]
   },
   {
-    emoji:'📖', title:'CECR & COMPOSANTES',
-    sub:'3 orientations · 6 composantes · Types de savoirs',
-    desc:'Le Cadre Européen Commun de Référence: diversification linguistique, transfert de compétences, éducation linguistique générale. Il n\'existe pas un curriculum unique.',
+    emoji:'📖',title:'CECR & COMPOSANTES',
+    sub:'3 orientations · 6 composantes · Savoirs',
+    desc:'Le Cadre Européen Commun de Référence: diversification linguistique, transfert de compétences, éducation linguistique générale.',
     audio:'Le Cadre Européen Commun de Référence pour les langues. Il présente trois orientations: la diversification linguistique, le transfert des compétences entre langues, et l\'éducation linguistique générale. Il distingue trois types de savoirs: le savoir, le savoir-faire et le savoir apprendre. La compétence communicative comprend six composantes: linguistique, sociolinguistique, discursive, socioculturelle, stratégique, et sociale et interpersonnelle.',
-    children:[
-      {emoji:'🏁',title:'Trois orientations du CECR',items:['Diversification linguistique','Transfert des compétences entre langues','Éducation linguistique générale']},
-      {emoji:'📚',title:'Types de savoirs',items:['Savoir (connaissances déclaratives)','Savoir-faire (compétences pratiques)','Savoir apprendre (autonomie)']},
-      {emoji:'💬',title:'6 composantes de la communication',items:['Linguistique','Sociolinguistique','Discursive','Socioculturelle','Stratégique','Sociale et interpersonnelle']}
+    kids:[
+      {ico:'🏁',ttl:'Trois orientations du CECR',items:['Diversification linguistique','Transfert des compétences entre langues','Éducation linguistique générale']},
+      {ico:'📚',ttl:'Types de savoirs',items:['Savoir (connaissances)','Savoir-faire (compétences)','Savoir apprendre (autonomie)']},
+      {ico:'💬',ttl:'6 composantes de la communication',items:['Linguistique','Sociolinguistique','Discursive','Socioculturelle','Stratégique','Sociale et interpersonnelle']}
     ]
   },
   {
-    emoji:'🔬', title:'MÉTHODOLOGIES CURRICULAIRES',
-    sub:'Classiques · Technologiques · Sociopolitiques · Constructivistes',
-    desc:'Quatre grandes familles: classiques (Tyler, Taba, Johnson), technologiques (Glazman, Arnaz), sociopolitiques et constructivistes.',
-    audio:'Les méthodologies curriculaires. Les méthodologies classiques comprennent Mauritz Johnson, Hilda Taba en 1962 et Ralph Tyler en 1979 avec ses quatre questions. Les méthodologies technologiques de Glazman, Arnaz et Arredondo misent sur la rationalité, mais sont critiquées pour leur vision mécaniste. Les méthodologies sociopolitiques critiquent l\'approche technologique avec des auteurs comme Stenhouse et Coll. Les méthodologies constructivistes voient la connaissance comme une construction progressive par l\'apprenant actif et réflexif.',
-    children:[
-      {emoji:'📜',title:'Méthodologies classiques',items:['Mauritz Johnson: résultats d\'apprentissage structurés, critères culturels','Hilda Taba (1962): diagnostic → objectifs → contenus → activités → évaluation','Ralph Tyler (1979): Quels objectifs? Quelles expériences? Comment atteindre? Comment vérifier?']},
-      {emoji:'⚗️',title:'Méthodologies technologiques',text:'Rationalité, clarté, cohérence. Critiques: vision mécaniste et simpliste.',items:['Glazman & Ibarrola (1978): objectifs généraux → spécifiques → intermédiaires','Arnaz (1981): objectifs → plan → évaluation → fiches → mise en œuvre','Arredondo (1979): besoins nationaux, profil professionnel, marché du travail']},
-      {emoji:'🏛️',title:'Méthodologies sociopolitiques',text:'Critique des approches technologiques. Relation éducation-société.',items:['Approche reconceptualiste','Curriculum modulaire','Lawrence Stenhouse','César Coll']},
-      {emoji:'🧠',title:'Méthodologies constructivistes',text:'La connaissance se construit progressivement. Constructivisme psychologique.',items:['Élaboration de schémas et modèles','Confrontation des connaissances','Rôle actif et réflexif de l\'apprenant']}
+    emoji:'🔬',title:'MÉTHODOLOGIES CURRICULAIRES',
+    sub:'Classiques · Techno · Socio · Constructivistes',
+    desc:'Quatre familles: classiques (Tyler, Taba, Johnson), technologiques (Glazman, Arnaz), sociopolitiques et constructivistes.',
+    audio:'Les méthodologies curriculaires. Les méthodologies classiques comprennent Mauritz Johnson, Hilda Taba en 1962 et Ralph Tyler en 1979. Les méthodologies technologiques misent sur la rationalité mais sont critiquées. Les méthodologies sociopolitiques avec Stenhouse et Coll critiquent l\'approche technologique. Les méthodologies constructivistes voient la connaissance comme une construction progressive par l\'apprenant actif.',
+    kids:[
+      {ico:'📜',ttl:'Classiques',items:['Mauritz Johnson: résultats d\'apprentissage structurés','Hilda Taba (1962): diagnostic → objectifs → contenus → activités → évaluation','Ralph Tyler (1979): 4 questions fondamentales']},
+      {ico:'⚗️',ttl:'Technologiques',txt:'Rationalité, clarté, cohérence. Critiques: vision mécaniste.',items:['Glazman & Ibarrola (1978)','José Antonio Arnaz (1981)','Victor Arredondo (1979)']},
+      {ico:'🏛️',ttl:'Sociopolitiques',txt:'Critique des approches technologiques. Relation éducation-société.',items:['Approche reconceptualiste','Curriculum modulaire','Stenhouse · César Coll']},
+      {ico:'🧠',ttl:'Constructivistes',txt:'La connaissance se construit progressivement.',items:['Élaboration de schémas et modèles','Rôle actif et réflexif de l\'apprenant']}
     ]
   },
   {
-    emoji:'🌿', title:'FLEXIBILITÉ CURRICULAIRE',
-    sub:'Adaptation · Innovation · Amélioration continue',
+    emoji:'🌿',title:'FLEXIBILITÉ CURRICULAIRE',
+    sub:'Adaptation · Innovation · Amélioration',
     desc:'Tous les modèles reconnaissent la flexibilité curriculaire. Le curriculum dépasse le plan d\'études: théorie, pratique, recherche et évaluation.',
-    audio:'La flexibilité curriculaire. Tous les modèles reconnaissent que le curriculum doit être flexible. Cette flexibilité permet l\'adaptation aux changements sociaux, l\'innovation pédagogique, la pertinence des contenus et l\'amélioration des curriculums. En conclusion, le curriculum dépasse le simple plan d\'études: il inclut théorie, pratique, recherche et évaluation, et doit être continuellement amélioré selon le contexte éducatif.',
-    children:[
-      {emoji:'🔄',title:'La flexibilité permet',items:['Adaptation aux changements sociaux','Innovation pédagogique','Pertinence des contenus','Amélioration continue des curriculums']},
-      {emoji:'🏁',title:'Conclusion générale',text:'Le curriculum dépasse le simple plan d\'études.',items:['Inclut: théorie, pratique, recherche et évaluation','Dépasse le plan d\'études traditionnel','Amélioration continue selon le contexte éducatif']}
+    audio:'La flexibilité curriculaire. Tous les modèles reconnaissent que le curriculum doit être flexible. Cette flexibilité permet l\'adaptation aux changements sociaux, l\'innovation pédagogique, la pertinence des contenus et l\'amélioration. En conclusion, le curriculum dépasse le simple plan d\'études: il inclut théorie, pratique, recherche et évaluation.',
+    kids:[
+      {ico:'🔄',ttl:'La flexibilité permet',items:['Adaptation aux changements sociaux','Innovation pédagogique','Pertinence des contenus','Amélioration continue des curriculums']},
+      {ico:'🏁',ttl:'Conclusion générale',txt:'Le curriculum dépasse le simple plan d\'études.',items:['Théorie + Pratique + Recherche + Évaluation','Amélioration continue selon le contexte éducatif']}
     ]
   }
 ];
 
-/* ════════════════════════════════════════════════════════
-   RENDER CARDS
-════════════════════════════════════════════════════════ */
-function esc(s){ return s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+/* ═══════════════════════════════════════════════
+   RENDER BRANCH NODES
+═══════════════════════════════════════════════ */
+const canvas  = document.getElementById('canvas');
+const nodeEls = [];
+let selIdx    = -1;
 
-function renderCard(b, i){
-  const kids = b.children.map(ch => `
-    <div class="sub-node">
-      <div class="sub-head"><span class="sub-emoji">${ch.emoji}</span><span class="sub-title">${ch.title}</span></div>
-      ${ch.text ? `<div class="sub-text">${ch.text}</div>` : ''}
-      ${ch.items ? `<ul class="sub-items">${ch.items.map(it=>`<li>${it}</li>`).join('')}</ul>` : ''}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+BRANCHES.forEach((b, i) => {
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.id = `nd${i}`;
+  el.innerHTML = `
+    <div class="nc" style="border-color:${PINK[i]}">
+      <div class="n-ico">${b.emoji}</div>
+      <div class="n-ttl" style="color:${PINK[i]}">${b.title}</div>
+      <div class="n-sub">${b.sub}</div>
+      <div class="n-foot">
+        <button class="n-aud" data-text="${esc(b.audio)}" onclick="event.stopPropagation();speakNode(this)">🔊 Écouter</button>
+        <span class="n-arrow">↗ Détails</span>
+      </div>
+    </div>`;
+  el.addEventListener('click', () => openDetail(i));
+  canvas.appendChild(el);
+  nodeEls.push(el);
+});
+
+/* ═══════════════════════════════════════════════
+   POSITIONING  (radial layout)
+═══════════════════════════════════════════════ */
+const CX = 550, CY = 420;   /* center of 1100×840 canvas */
+
+function positionAll(){
+  /* Central */
+  document.getElementById('central').style.left = `${CX}px`;
+  document.getElementById('central').style.top  = `${CY}px`;
+
+  /* Nodes: 9 evenly spaced around a circle */
+  const R = 270;
+  nodeEls.forEach((el, i) => {
+    const ang = (-90 + i * 40) * Math.PI / 180;
+    el.style.left = `${CX + R * Math.cos(ang)}px`;
+    el.style.top  = `${CY + R * Math.sin(ang)}px`;
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   DETAIL PANEL
+═══════════════════════════════════════════════ */
+function openDetail(i){
+  const b = BRANCHES[i];
+  if (selIdx === i){
+    selIdx = -1;
+    nodeEls[i].classList.remove('sel');
+    document.getElementById('detail').classList.remove('open');
+    drawSVG();
+    return;
+  }
+  if (selIdx >= 0) nodeEls[selIdx].classList.remove('sel');
+  selIdx = i;
+  nodeEls[i].classList.add('sel');
+
+  const kidsHTML = b.kids.map(k => `
+    <div class="det-ch">
+      <div class="det-ch-hd"><span class="det-ch-ico">${k.ico}</span><span class="det-ch-ttl">${k.ttl}</span></div>
+      ${k.txt  ? `<div class="det-ch-txt">${k.txt}</div>` : ''}
+      ${k.items? `<ul class="det-items">${k.items.map(it=>`<li>${it}</li>`).join('')}</ul>` : ''}
     </div>`).join('');
 
-  return `
-    <div class="card" id="card-${i}" style="--cc:${COLORS[i]}">
-      <div class="card-header" onclick="toggleCard(${i})">
-        <span class="c-emoji-sm">${b.emoji}</span>
-        <div class="card-meta">
-          <div class="card-title">${b.title}</div>
-          <div class="card-sub">${b.sub}</div>
-        </div>
-        <div class="card-right">
-          <button class="audio-btn" data-text="${esc(b.audio)}" onclick="event.stopPropagation();speakNode(this)">🔊</button>
-          <span class="chevron">▾</span>
+  document.getElementById('det-inner').innerHTML = `
+    <div class="det-head">
+      <div class="det-left">
+        <span class="det-big">${b.emoji}</span>
+        <div>
+          <div class="det-ttl" style="color:${PINK[i]}">${b.title}</div>
+          <div class="det-sub">${b.sub}</div>
         </div>
       </div>
-      <div class="card-body"><div class="card-inner">
-        <div class="card-desc">${b.desc}</div>
-        <div class="sub-list">${kids}</div>
-      </div></div>
-    </div>`;
+      <button class="det-cls" onclick="closeDetail()">✕ Fermer</button>
+    </div>
+    <div class="det-desc">${b.desc}</div>
+    <div class="det-grid">${kidsHTML}</div>`;
+
+  document.getElementById('detail').classList.add('open');
+  setTimeout(() => document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'}), 80);
+  drawSVG();
 }
 
-document.getElementById('grid').innerHTML = BRANCHES.map(renderCard).join('');
-
-/* ════════════════════════════════════════════════════════
-   SVG CONNECTIONS
-════════════════════════════════════════════════════════ */
-/* Which pairs to connect (indices: -1 = central) */
-const CONN_MAIN = [
-  [-1,0],[-1,1],[-1,2],
-  [-1,3],[-1,4],[-1,5],
-  [-1,6],[-1,7],[-1,8]
-];
-const CONN_SIDE = [
-  [0,1],[1,2],         // row 0
-  [3,4],[4,5],         // row 1
-  [6,7],[7,8],         // row 2
-  [0,3],[3,6],         // col 0
-  [1,4],[4,7],         // col 1
-  [2,5],[5,8],         // col 2
-  [0,4],[4,8],[2,4],[4,6] // diagonals
-];
-
-function getRect(el){
-  const wrap = document.getElementById('main-wrap');
-  const wr   = wrap.getBoundingClientRect();
-  const er   = el.getBoundingClientRect();
-  return {
-    x : er.left - wr.left,
-    y : er.top  - wr.top,
-    w : er.width,
-    h : er.height,
-    cx: er.left - wr.left + er.width  / 2,
-    cy: er.top  - wr.top  + er.height / 2,
-  };
+function closeDetail(){
+  if (selIdx >= 0){ nodeEls[selIdx].classList.remove('sel'); selIdx = -1; }
+  document.getElementById('detail').classList.remove('open');
+  drawSVG();
 }
 
-function edge(r, toward){
-  /* Return the point on the border of r closest to 'toward' */
+/* ═══════════════════════════════════════════════
+   SVG CONNECTIONS  (z-index 60 = top layer)
+═══════════════════════════════════════════════ */
+/* connection pairs: -1 = central node */
+const MAIN_CONNS = [[-1,0],[-1,1],[-1,2],[-1,3],[-1,4],[-1,5],[-1,6],[-1,7],[-1,8]];
+const SIDE_CONNS = [
+  [0,1],[1,2],[0,8],          /* top arc */
+  [3,4],[4,5],                /* right arc */
+  [5,6],[6,7],                /* bottom arc */
+  [7,8],                      /* left arc */
+  [0,3],[2,5],[4,7],[6,1],    /* diagonals */
+  [1,8],[3,6]                 /* cross */
+];
+
+function svgEl(tag, attrs){
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k,v));
+  return el;
+}
+
+function nodeRect(idx){
+  const el = idx === -1
+    ? document.querySelector('.c-card')
+    : nodeEls[idx].querySelector('.nc');
+  const wr = canvas.getBoundingClientRect();
+  const er = el.getBoundingClientRect();
+  const x  = er.left - wr.left,  y = er.top - wr.top;
+  return { x, y, w:er.width, h:er.height, cx:x+er.width/2, cy:y+er.height/2 };
+}
+
+function borderPt(r, toward){
   const dx = toward.cx - r.cx, dy = toward.cy - r.cy;
-  const ax = Math.abs(dx), ay = Math.abs(dy);
-  if(ax > ay){
-    return { x: r.cx + Math.sign(dx)*(r.w/2), y: r.cy + dy*(r.w/2)/ax };
-  } else {
-    return { x: r.cx + dx*(r.h/2)/ay, y: r.cy + Math.sign(dy)*(r.h/2) };
+  if(!dx && !dy) return {x:r.cx,y:r.cy};
+  const sx = Math.abs(dx)/(r.w/2), sy = Math.abs(dy)/(r.h/2);
+  const t  = 1 / Math.max(sx, sy);
+  return {x: r.cx + dx*t, y: r.cy + dy*t};
+}
+
+function drawSVG(){
+  const svg = document.getElementById('conn-svg');
+  svg.innerHTML = '';
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  /* keyframe style inside SVG */
+  const sty = document.createElementNS('http://www.w3.org/2000/svg','style');
+  sty.textContent = `
+    @keyframes drawIn{from{stroke-dashoffset:800}to{stroke-dashoffset:0}}
+    @keyframes hrtPulse{0%,100%{font-size:9px;opacity:.9}50%{font-size:13px;opacity:1}}
+    @keyframes dotGlow{0%,100%{opacity:.8;r:3px}50%{opacity:.4;r:2px}}
+  `;
+  svg.prepend(sty);
+
+  let seq = 0;
+
+  function addPath(a, b, main){
+    const rA = nodeRect(a), rB = nodeRect(b);
+    const pA = borderPt(rA, rB), pB = borderPt(rB, rA);
+
+    const color = a === -1 ? PINK[b] : PINK[Math.min(a,b)];
+    const dx = pB.x-pA.x, dy = pB.y-pA.y;
+    const cx1 = pA.x + dx*.38 + dy*.12, cy1 = pA.y + dy*.38 - dx*.12;
+    const cx2 = pB.x - dx*.38 - dy*.12, cy2 = pB.y - dy*.38 + dx*.12;
+    const d = `M${pA.x.toFixed(1)},${pA.y.toFixed(1)} C${cx1.toFixed(1)},${cy1.toFixed(1)} ${cx2.toFixed(1)},${cy2.toFixed(1)} ${pB.x.toFixed(1)},${pB.y.toFixed(1)}`;
+
+    const path = svgEl('path',{
+      d, fill:'none', stroke:color,
+      'stroke-width': main ? '2.2' : '1.2',
+      'stroke-opacity': main ? '.72' : '.38',
+      'stroke-linecap':'round',
+      'stroke-dasharray': main ? '800' : '6 4',
+      'stroke-dashoffset': main ? '800' : '0',
+    });
+    if(main){
+      path.style.animation = `drawIn .9s ${(seq*0.07).toFixed(2)}s ease forwards`;
+    }
+    svg.appendChild(path);
+
+    /* heart midpoint on main lines */
+    if(main){
+      const mx = (pA.x+pB.x)/2, my = (pA.y+pB.y)/2;
+      const t = svgEl('text',{
+        x:mx, y:my, 'text-anchor':'middle','dominant-baseline':'middle',
+        fill:color, opacity:'.9',
+        style:`font-size:10px;animation:hrtPulse 2.2s ${(seq*0.07).toFixed(2)}s ease-in-out infinite`
+      });
+      t.textContent = '♥';
+      svg.appendChild(t);
+    }
+
+    /* dots at endpoints */
+    [pA,pB].forEach(p => {
+      const c = svgEl('circle',{cx:p.x, cy:p.y, r:'3.5', fill:color, opacity:'.75',
+        style:`animation:dotGlow 2.5s ${(seq*0.07).toFixed(2)}s ease-in-out infinite`});
+      svg.appendChild(c);
+    });
+
+    seq++;
+  }
+
+  /* draw in order: side first (behind), then main on top */
+  SIDE_CONNS.forEach(([a,b]) => addPath(a, b, false));
+  MAIN_CONNS.forEach(([a,b]) => addPath(a, b, true));
+
+  /* highlight ring around selected node */
+  if(selIdx >= 0){
+    const r = nodeRect(selIdx);
+    svg.appendChild(svgEl('rect',{
+      x:r.x-5, y:r.y-5, width:r.w+10, height:r.h+10, rx:22,
+      fill:'none', stroke:PINK[selIdx],
+      'stroke-width':'2.5','stroke-opacity':'.7',
+      'stroke-dasharray':'6 3'
+    }));
   }
 }
 
-function curve(a, b){
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const cx1 = a.x + dx*.35 + dy*.08;
-  const cy1 = a.y + dy*.35 - dx*.08;
-  const cx2 = b.x - dx*.35 - dy*.08;
-  const cy2 = b.y - dy*.35 + dx*.08;
-  return `M${a.x},${a.y} C${cx1},${cy1} ${cx2},${cy2} ${b.x},${b.y}`;
-}
+/* ═══════════════════════════════════════════════
+   MOBILE FALLBACK
+═══════════════════════════════════════════════ */
+(function buildMobile(){
+  document.getElementById('mob').innerHTML = BRANCHES.map((b,i)=>`
+    <div class="mob-card">
+      <div class="mob-hd" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span style="font-size:22px">${b.emoji}</span>
+        <div><div class="mob-ttl" style="color:${PINK[i]}">${b.title}</div><div class="mob-sub">${b.sub}</div></div>
+        <button class="n-aud" data-text="${esc(b.audio)}" onclick="event.stopPropagation();speakNode(this)" style="margin-left:auto">🔊</button>
+      </div>
+      <div class="mob-body"><div class="mob-bd-in">
+        <p style="font-size:13px;color:#8B4566;line-height:1.65;margin-bottom:10px">${b.desc}</p>
+        ${b.kids.map(k=>`
+          <div style="margin-bottom:10px">
+            <div style="font-size:11px;font-weight:800;color:${PINK[i]};text-transform:uppercase;margin-bottom:3px">${k.ico} ${k.ttl}</div>
+            ${k.txt?`<p style="font-size:12px;color:#B07090;margin-bottom:4px;line-height:1.55">${k.txt}</p>`:''}
+            ${k.items?`<ul style="list-style:none">${k.items.map(it=>`<li style="font-size:12px;color:#5D2E46;padding:2px 0">🌸 ${it}</li>`).join('')}</ul>`:''}
+          </div>`).join('')}
+      </div></div>
+    </div>`).join('');
+})();
 
-let animIdx = 0;
-function makePath(d, color, cls, delay){
-  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-  path.setAttribute('d', d);
-  path.setAttribute('class', cls);
-  path.setAttribute('stroke', color);
-  const len = path.getTotalLength ? path.getTotalLength() : 300;
-  path.style.strokeDasharray  = len;
-  path.style.strokeDashoffset = len;
-  path.style.animation = `drawLine .9s ${delay}s cubic-bezier(.4,0,.2,1) forwards`;
-  /* After draw, keep visible and add subtle pulse via opacity */
-  path.addEventListener('animationend', () => {
-    path.style.strokeDashoffset = 0;
-    path.style.transition = 'stroke-opacity 1.5s ease';
-  });
-  return path;
-}
-
-function makeDot(cx, cy, color, delay){
-  const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-  c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', 3);
-  c.setAttribute('fill', color);
-  c.setAttribute('class','conn-dot');
-  c.style.animationDelay = `${delay}s`;
-  return c;
-}
-
-function drawConnections(){
-  const svg  = document.getElementById('conn-svg');
-  const wrap = document.getElementById('main-wrap');
-  svg.setAttribute('viewBox',`0 0 ${wrap.offsetWidth} ${wrap.scrollHeight}`);
-  svg.style.height = wrap.scrollHeight + 'px';
-  svg.innerHTML = '';
-
-  const centralEl = document.querySelector('.c-card');
-  if(!centralEl) return;
-
-  /* gather rects */
-  const cRect = getRect(centralEl);
-  const gRects = BRANCHES.map((_,i) => getRect(document.getElementById(`card-${i}`)));
-
-  function getRectById(id){ return id === -1 ? cRect : gRects[id]; }
-
-  /* draw main connections (central → each card) */
-  CONN_MAIN.forEach(([a,b], i) => {
-    const rA = getRectById(a), rB = getRectById(b);
-    const pA = edge(rA, rB), pB = edge(rB, rA);
-    const color = COLORS[b];
-    const d = curve(pA, pB);
-    const delay = .3 + i*.07;
-    svg.appendChild(makePath(d, color, 'conn-main', delay));
-    svg.appendChild(makeDot(pA.x, pA.y, color, delay + .8));
-    svg.appendChild(makeDot(pB.x, pB.y, color, delay + .85));
-  });
-
-  /* draw side connections (between sibling cards) */
-  CONN_SIDE.forEach(([a,b], i) => {
-    const rA = getRectById(a), rB = getRectById(b);
-    const pA = edge(rA, rB), pB = edge(rB, rA);
-    /* blend colors of both nodes */
-    const color = COLORS[a];
-    const d = curve(pA, pB);
-    const delay = .8 + i*.05;
-    svg.appendChild(makePath(d, color, 'conn-side', delay));
-  });
-}
-
-/* draw on load and resize */
-window.addEventListener('load', () => { drawConnections(); });
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(drawConnections, 200);
-});
-/* redraw when cards open/close */
-document.getElementById('grid').addEventListener('click', () => {
-  setTimeout(drawConnections, 420);
-});
-
-/* ════════════════════════════════════════════════════════
-   CARD INTERACTIVITY
-════════════════════════════════════════════════════════ */
-function toggleCard(i){
-  document.getElementById(`card-${i}`).classList.toggle('open');
-}
-
-let expanded = false;
-document.getElementById('btn-expand').addEventListener('click', () => {
-  expanded = !expanded;
-  document.querySelectorAll('.card').forEach(c => c.classList.toggle('open', expanded));
-  document.getElementById('btn-expand').textContent = expanded ? '↕ Tout réduire' : '↕ Tout développer';
-  setTimeout(drawConnections, 420);
-});
-
-/* ════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    AUDIO
-════════════════════════════════════════════════════════ */
-let currentBtn = null, reading = false;
+═══════════════════════════════════════════════ */
+let curBtn = null, reading = false;
 
 function stopAll(){
-  window.speechSynthesis.cancel();
-  reading = false;
-  if(currentBtn){ currentBtn.classList.remove('playing'); currentBtn.innerHTML='🔊'; currentBtn=null; }
-  const lireBtn = document.getElementById('btn-lire');
-  lireBtn.classList.remove('active');
-  lireBtn.textContent='▶ Lire tout';
+  window.speechSynthesis.cancel(); reading = false;
+  if(curBtn){ curBtn.classList.remove('playing'); curBtn.innerHTML='🔊 Écouter'; curBtn=null; }
+  document.getElementById('btn-lire').textContent='▶ Lire tout';
+  document.querySelector('.c-audio-btn') && (document.querySelector('.c-audio-btn.playing')?.innerHTML='🔊 Écouter');
 }
+
+function speakNode(btn){
+  if(btn===curBtn && reading){ stopAll(); return; }
+  stopAll();
+  curBtn = btn;
+  btn.classList.add('playing');
+  btn.innerHTML='<span class="adot"></span> En cours…';
+  const u = new SpeechSynthesisUtterance(btn.dataset.text||'');
+  u.lang='fr-FR'; u.rate=.92; u.pitch=1;
+  u.onend  = () => { btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
+  u.onerror = () => { btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
+  reading=true; window.speechSynthesis.speak(u);
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('.n-aud,.c-audio-btn');
+  if(b) speakNode(b);
+});
+
+document.getElementById('btn-lire').addEventListener('click', ()=>{
+  if(reading){ stopAll(); return; }
+  stopAll();
+  const texts=[
+    'La conception curriculaire est un processus dynamique, continu et participatif visant à organiser l\'enseignement-apprentissage selon les besoins sociaux, culturels et éducatifs.',
+    ...BRANCHES.map(b=>b.title+'. '+b.audio)
+  ];
+  document.getElementById('btn-lire').textContent='⏸ En lecture…';
+  let idx=0; reading=true;
+  function nxt(){
+    if(idx>=texts.length||!reading){stopAll();return;}
+    const u=new SpeechSynthesisUtterance(texts[idx++]);
+    u.lang='fr-FR';u.rate=.92;
+    u.onend=()=>{if(reading)nxt();}; u.onerror=stopAll;
+    window.speechSynthesis.speak(u);
+  }
+  nxt();
+});
 
 document.getElementById('btn-stop').addEventListener('click', stopAll);
 
-function speakNode(btn){
-  if(btn === currentBtn && reading){ stopAll(); return; }
-  stopAll();
-  const text = btn.getAttribute('data-text');
-  if(!text) return;
-  currentBtn = btn;
-  btn.classList.add('playing');
-  btn.innerHTML = '<span class="audio-dot"></span> En cours…';
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang='fr-FR'; u.rate=.92; u.pitch=1;
-  u.onend = () => { btn.classList.remove('playing'); btn.innerHTML='🔊'; currentBtn=null; reading=false; };
-  u.onerror = () => { btn.classList.remove('playing'); btn.innerHTML='🔊'; currentBtn=null; reading=false; };
-  reading=true;
-  window.speechSynthesis.speak(u);
-}
-
-document.addEventListener('click', e => {
-  const btn = e.target.closest('.audio-btn');
-  if(btn) speakNode(btn);
-});
-
-/* Lire tout */
-document.getElementById('btn-lire').addEventListener('click', () => {
-  if(reading){ stopAll(); return; }
-  stopAll();
-  const intro = "La conception curriculaire est un processus dynamique, continu et participatif visant à organiser l'enseignement-apprentissage selon les besoins sociaux, culturels et éducatifs.";
-  const all = [intro, ...BRANCHES.map(b => b.title + '. ' + b.audio)];
-  const lireBtn = document.getElementById('btn-lire');
-  lireBtn.classList.add('active');
-  lireBtn.textContent='⏸ En lecture…';
-  let idx=0; reading=true;
-  function next(){
-    if(idx>=all.length || !reading){ stopAll(); return; }
-    const u = new SpeechSynthesisUtterance(all[idx++]);
-    u.lang='fr-FR'; u.rate=.92; u.pitch=1;
-    u.onend = () => { if(reading) next(); };
-    u.onerror = stopAll;
-    window.speechSynthesis.speak(u);
-  }
-  next();
-});
-
-/* Chrome speechSynthesis bug: pauses after ~15s */
-setInterval(() => {
-  if(window.speechSynthesis.speaking && !window.speechSynthesis.paused){
+/* Chrome pause bug fix */
+setInterval(()=>{
+  if(window.speechSynthesis.speaking&&!window.speechSynthesis.paused){
     window.speechSynthesis.pause(); window.speechSynthesis.resume();
   }
-}, 12000);
+},12000);
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+function init(){
+  positionAll();
+  requestAnimationFrame(drawSVG);
+}
+window.addEventListener('load', init);
+let rt;
+window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(init,180); });
 </script>
 </body>
 </html>
