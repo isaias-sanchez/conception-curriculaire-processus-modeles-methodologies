@@ -201,6 +201,66 @@ header{
 .det-items li{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text)}
 .det-items li::before{content:'🌸';flex-shrink:0;font-size:10px;margin-top:1px}
 
+/* IMAGE GALLERY */
+.img-section{margin-top:24px;border-top:2px dashed var(--soft);padding-top:20px}
+.img-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px}
+.img-section-title{font-size:12px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.img-upload-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 16px;border-radius:20px;border:2px dashed var(--mid);
+  background:var(--cream);color:var(--deep);
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;
+  cursor:pointer;transition:all .2s;
+}
+.img-upload-btn:hover{background:var(--soft);border-style:solid}
+.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.img-item{position:relative;border-radius:14px;overflow:hidden;
+  aspect-ratio:4/3;background:var(--soft);
+  box-shadow:0 3px 12px rgba(255,133,161,.2);
+  transition:transform .2s;}
+.img-item:hover{transform:scale(1.03)}
+.img-item img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.img-del{
+  position:absolute;top:5px;right:5px;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:none;
+  font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);
+  transition:background .15s;
+}
+.img-del:hover{background:#FFD6E7}
+.img-empty{
+  text-align:center;padding:24px 16px;
+  color:var(--muted);font-size:13px;font-weight:600;
+  border:2px dashed var(--mid);border-radius:14px;
+}
+/* lightbox */
+#lightbox{
+  display:none;position:fixed;inset:0;z-index:1000;
+  background:rgba(93,46,70,.75);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+#lightbox.open{display:flex}
+#lightbox img{max-width:90vw;max-height:88vh;border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);animation:zoomIn .25s ease}
+@keyframes zoomIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+#lb-close{
+  position:fixed;top:20px;right:24px;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:none;
+  font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);
+}
+/* node badge when has images */
+.n-img-badge{
+  display:inline-flex;align-items:center;gap:2px;
+  font-size:9px;font-weight:800;color:var(--deep);
+  background:var(--soft);border-radius:10px;padding:1px 6px;
+  margin-left:4px;
+}
+
 /* MOBILE */
 @media(max-width:768px){
   #map-wrap,#detail{display:none}
@@ -271,6 +331,15 @@ header{
 
 <!-- MOBILE -->
 <div class="mob" id="mob"></div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt=""/>
+</div>
+
+<!-- hidden file input (shared, reused per node) -->
+<input type="file" id="img-input" accept="image/*" multiple style="display:none"/>
 
 <script>
 /* ══════════════════════════════════════
@@ -401,6 +470,7 @@ BRANCHES.forEach((b, i) => {
         <button class="n-aud" data-text="${esc(b.audio)}" onclick="event.stopPropagation();speakNode(this)">🔊 Écouter</button>
         <span class="n-arrow">↗ Détails</span>
       </div>
+      <span class="n-img-badge" style="display:none"></span>
     </div>`;
   el.addEventListener('click', () => openDetail(i));
   canvas.appendChild(el);
@@ -460,7 +530,8 @@ function openDetail(i){
       <button class="det-cls" onclick="closeDetail()">✕ Fermer</button>
     </div>
     <div class="det-desc">${b.desc}</div>
-    <div class="det-grid">${kidsHTML}</div>`;
+    <div class="det-grid">${kidsHTML}</div>
+    ${renderImgGallery(i)}`;
 
   document.getElementById('detail').classList.add('open');
   setTimeout(()=>document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
@@ -651,11 +722,117 @@ setInterval(()=>{
 },12000);
 
 /* ══════════════════════════════════════
+   IMAGES — per-node, stored in localStorage
+══════════════════════════════════════ */
+const imgKey = i => `mm_imgs_${i}`;
+
+function loadImgs(i){
+  try{ return JSON.parse(localStorage.getItem(imgKey(i))||'[]'); }
+  catch(e){ return []; }
+}
+
+function saveImgs(i, arr){
+  try{ localStorage.setItem(imgKey(i), JSON.stringify(arr)); }
+  catch(e){ alert('Stockage plein — essaie des images plus légères.'); }
+}
+
+function updateNodeBadge(i){
+  const imgs = loadImgs(i);
+  const badge = document.querySelector(`#nd${i} .n-img-badge`);
+  if(!badge) return;
+  if(imgs.length > 0){
+    badge.textContent = `📷 ${imgs.length}`;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderImgGallery(i){
+  const imgs = loadImgs(i);
+  const empty = imgs.length === 0
+    ? `<div class="img-empty">🌸 Aucune image pour l'instant<br><span style="font-size:11px;font-weight:400">Clique sur le bouton pour en ajouter</span></div>`
+    : '';
+  const items = imgs.map((src, j) => `
+    <div class="img-item">
+      <img src="${src}" alt="image ${j+1}" onclick="openLightbox('${src}')"/>
+      <button class="img-del" title="Supprimer" onclick="deleteImg(${i},${j})">✕</button>
+    </div>`).join('');
+
+  return `
+    <div class="img-section">
+      <div class="img-section-hd">
+        <span class="img-section-title">🖼️ Images (${imgs.length})</span>
+        <label class="img-upload-btn" for="img-input" onclick="prepUpload(${i})">
+          📎 Ajouter des images
+        </label>
+      </div>
+      ${empty}
+      <div class="img-grid">${items}</div>
+    </div>`;
+}
+
+function prepUpload(i){
+  const input = document.getElementById('img-input');
+  input.value = '';
+  input.onchange = () => handleImgUpload(i, input.files);
+}
+
+function handleImgUpload(i, files){
+  if(!files || !files.length) return;
+  const arr = loadImgs(i);
+  let pending = files.length;
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      arr.push(e.target.result);
+      pending--;
+      if(pending === 0){
+        saveImgs(i, arr);
+        /* re-render gallery section in open detail panel */
+        const galleryEl = document.querySelector('#det-inner .img-section');
+        if(galleryEl){
+          const tmp = document.createElement('div');
+          tmp.innerHTML = renderImgGallery(i);
+          galleryEl.replaceWith(tmp.firstElementChild);
+        }
+        updateNodeBadge(i);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function deleteImg(i, j){
+  const arr = loadImgs(i);
+  arr.splice(j, 1);
+  saveImgs(i, arr);
+  const galleryEl = document.querySelector('#det-inner .img-section');
+  if(galleryEl){
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderImgGallery(i);
+    galleryEl.replaceWith(tmp.firstElementChild);
+  }
+  updateNodeBadge(i);
+}
+
+function openLightbox(src){
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lb-img').src = '';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+
+/* ══════════════════════════════════════
    INIT — run immediately, then again on load
 ══════════════════════════════════════ */
 function init(){
   positionAll();
   requestAnimationFrame(drawSVG);
+  BRANCHES.forEach((_, i) => updateNodeBadge(i));
 }
 
 /* Run immediately (script at end of body = DOM ready) */
