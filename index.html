@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conception Curriculaire — Carte Conceptuelle Multimédia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060b18;
+      --surface: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content:'';
+      position:fixed; inset:0;
+      background:
+        radial-gradient(ellipse at 15% 15%, rgba(99,102,241,.1) 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 85%, rgba(236,72,153,.07) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 50%, rgba(14,165,233,.05) 0%, transparent 60%);
+      pointer-events:none; z-index:0;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    header {
+      position:sticky; top:0; z-index:200;
+      background: rgba(6,11,24,.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px; flex-wrap:wrap;
+    }
+    .hd-left { display:flex; align-items:center; gap:12px; }
+    .hd-badge {
+      font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+      color:#818cf8; background:rgba(99,102,241,.14);
+      padding:4px 10px; border-radius:20px; border:1px solid rgba(99,102,241,.28);
+    }
+    .hd-title { font-size:17px; font-weight:800; letter-spacing:-.02em; color:#f1f5f9; }
+    .hd-sub  { font-size:11px; color:var(--muted); margin-top:1px; }
+    .hd-controls { display:flex; gap:8px; flex-wrap:wrap; }
+
+    .btn {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 15px; border-radius:8px; border:1px solid var(--border);
+      background:var(--surface); color:var(--text);
+      font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
+      cursor:pointer; transition:all .2s; white-space:nowrap;
+    }
+    .btn:hover { background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.16); }
+    .btn-primary {
+      background:rgba(99,102,241,.18); border-color:rgba(99,102,241,.4); color:#a5b4fc;
+    }
+    .btn-primary:hover { background:rgba(99,102,241,.28); }
+    .btn-primary.active { background:rgba(99,102,241,.38); }
+    .btn-stop { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.3); color:#fca5a5; }
+    .btn-stop:hover { background:rgba(239,68,68,.24); }
+
+    /* ── MAIN ─────────────────────────────────────────────── */
+    main {
+      position:relative; z-index:1;
+      padding: 40px 28px;
+      max-width: 1380px;
+      margin: 0 auto;
+    }
+
+    /* ── CENTRAL NODE ─────────────────────────────────────── */
+    .central-wrap { text-align:center; margin-bottom:40px; }
+    .central-card {
+      display:inline-flex; flex-direction:column; align-items:center;
+      gap:14px; padding:36px 52px;
+      background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(139,92,246,.14));
+      border:1px solid rgba(99,102,241,.35);
+      border-radius:24px; max-width:700px; position:relative;
+      animation: fadeUp .6s ease both;
+    }
+    .central-card::after {
+      content:''; position:absolute;
+      bottom:-36px; left:50%; transform:translateX(-50%);
+      width:2px; height:36px;
+      background:linear-gradient(to bottom, rgba(99,102,241,.6), transparent);
+    }
+    .c-emoji  { font-size:52px; line-height:1; }
+    .c-title  {
+      font-size:26px; font-weight:900; letter-spacing:-.03em;
+      background:linear-gradient(135deg,#818cf8,#a78bfa);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .c-sub    { font-size:13px; color:var(--muted); font-weight:500; }
+    .c-desc   { font-size:14px; color:#cbd5e1; line-height:1.7; max-width:480px; }
+
+    /* audio btn */
+    .audio-btn {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 14px; background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:20px; color:var(--muted);
+      font-size:12px; font-weight:500;
+      cursor:pointer; transition:all .2s;
+    }
+    .audio-btn:hover { background:rgba(255,255,255,.11); color:var(--text); }
+    .audio-btn.playing {
+      background:rgba(99,102,241,.2); border-color:rgba(99,102,241,.4); color:#818cf8;
+    }
+    @keyframes ripple { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .audio-dot {
+      display:inline-block; width:6px; height:6px; border-radius:50%;
+      background:#818cf8; animation:ripple 1.2s infinite;
+    }
+
+    /* ── BRANCH GRID ──────────────────────────────────────── */
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:20px;
+    }
+    @media(max-width:1100px){ .grid{ grid-template-columns:repeat(2,1fr); } }
+    @media(max-width:660px) { .grid{ grid-template-columns:1fr; } }
+
+    /* ── BRANCH CARD ──────────────────────────────────────── */
+    .card {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:16px; overflow:hidden;
+      transition:transform .25s, border-color .25s, box-shadow .25s;
+      animation: fadeUp .5s ease both;
+    }
+    .card:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,.35); }
+    .card.open { border-color:var(--cc); }
+
+    /* stagger */
+    .card:nth-child(1){animation-delay:.08s}
+    .card:nth-child(2){animation-delay:.13s}
+    .card:nth-child(3){animation-delay:.18s}
+    .card:nth-child(4){animation-delay:.23s}
+    .card:nth-child(5){animation-delay:.28s}
+    .card:nth-child(6){animation-delay:.33s}
+    .card:nth-child(7){animation-delay:.38s}
+    .card:nth-child(8){animation-delay:.43s}
+    .card:nth-child(9){animation-delay:.48s}
+
+    .card-header {
+      display:flex; align-items:center; gap:12px;
+      padding:18px 18px 18px 20px;
+      cursor:pointer; user-select:none;
+      position:relative;
+    }
+    .card-header::before {
+      content:''; position:absolute;
+      left:0; top:0; bottom:0; width:3px;
+      background:var(--cc); border-radius:3px 0 0 3px;
+    }
+    .card-emoji { font-size:26px; flex-shrink:0; }
+    .card-meta  { flex:1; min-width:0; }
+    .card-title {
+      font-size:12px; font-weight:800; letter-spacing:.06em;
+      color:var(--cc); margin-bottom:3px;
+    }
+    .card-sub {
+      font-size:11px; color:var(--muted); line-height:1.4;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .card-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .chevron { font-size:13px; color:var(--muted); transition:transform .35s; }
+    .card.open .chevron { transform:rotate(180deg); }
+
+    /* body */
+    .card-body {
+      display:grid; grid-template-rows:0fr;
+      transition:grid-template-rows .38s ease;
+    }
+    .card.open .card-body { grid-template-rows:1fr; }
+    .card-inner { overflow:hidden; }
+
+    .card-desc {
+      padding:0 18px 14px;
+      font-size:13px; color:var(--muted); line-height:1.65;
+      border-bottom:1px solid var(--border);
+    }
+
+    .sub-list { padding:14px 18px; display:flex; flex-direction:column; gap:10px; }
+
+    .sub-node {
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+      border-left:2px solid var(--cc);
+      border-radius:0 8px 8px 0;
+      padding:10px 13px;
+    }
+    .sub-head {
+      display:flex; align-items:center; gap:7px; margin-bottom:6px;
+    }
+    .sub-emoji { font-size:14px; }
+    .sub-title { font-size:11px; font-weight:700; color:#cbd5e1; letter-spacing:.04em; text-transform:uppercase; }
+    .sub-text  { font-size:12px; color:var(--muted); line-height:1.6; }
+    .sub-items { list-style:none; margin-top:5px; display:flex; flex-direction:column; gap:3px; }
+    .sub-items li {
+      display:flex; align-items:flex-start; gap:6px;
+      font-size:12px; color:var(--muted); line-height:1.55;
+    }
+    .sub-items li::before {
+      content:'→'; color:var(--cc); flex-shrink:0; margin-top:1px; font-size:10px;
+    }
+
+    /* ── FOOTER ───────────────────────────────────────────── */
+    footer {
+      text-align:center; padding:28px;
+      font-size:11px; color:var(--muted);
+      border-top:1px solid var(--border);
+      margin-top:48px;
+    }
+    footer a { color:#818cf8; text-decoration:none; }
+
+    /* ── ANIMATIONS ───────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(18px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    @media(max-width:480px) {
+      header { padding:12px 14px; }
+      .hd-title { font-size:14px; }
+      main { padding:28px 14px; }
+      .central-card { padding:24px 20px; }
+      .c-title { font-size:20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── HEADER ──────────────────────────────────────────────── -->
+<header>
+  <div class="hd-left">
+    <span class="hd-badge">Unité 2</span>
+    <div>
+      <div class="hd-title">Conception Curriculaire</div>
+      <div class="hd-sub">Processus, Modèles et Méthodologies</div>
+    </div>
+  </div>
+  <div class="hd-controls">
+    <button class="btn btn-primary" id="btn-lire">▶ Lire tout</button>
+    <button class="btn" id="btn-expand">↕ Tout développer</button>
+    <button class="btn btn-stop" id="btn-stop">⏹ Arrêter</button>
+  </div>
+</header>
+
+<!-- ─── MAIN ─────────────────────────────────────────────────── -->
+<main>
+
+  <!-- Central concept -->
+  <div class="central-wrap">
+    <div class="central-card">
+      <div class="c-emoji">🎓</div>
+      <div class="c-title">CONCEPTION CURRICULAIRE</div>
+      <div class="c-sub">Processus · Modèles · Méthodologies</div>
+      <div class="c-desc">
+        Processus dynamique, continu et participatif visant à organiser l'enseignement-apprentissage
+        selon les besoins sociaux, culturels et éducatifs.
+      </div>
+      <button class="audio-btn" data-text="La conception curriculaire est un processus dynamique, continu et participatif. Il vise à structurer les processus éducatifs, à répondre aux besoins sociaux et culturels, à organiser l'enseignement et l'apprentissage, et à construire une proposition curriculaire cohérente. Le curriculum est flexible, adaptée au contexte, et orientée vers le développement des étudiants et de la société.">
+        🔊 Écouter
+      </button>
+    </div>
+  </div>
+
+  <!-- 9-branch grid (rendered by JS) -->
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  Carte Conceptuelle Multimédia — Unité 2 &nbsp;·&nbsp; Audio: Web Speech API (fr-FR)
+</footer>
+
+<!-- ─── DATA + LOGIC ──────────────────────────────────────────── -->
+<script>
+/* ================================================================
+   DATA
+================================================================ */
+const BRANCHES = [
+  {
+    emoji: '🏛️', color: '#818cf8',
+    title: 'FONDEMENTS DU CURRICULUM',
+    sub: 'Concepts · Évolution · Absence de méthode universelle',
+    desc: 'Le curriculum a évolué historiquement. Il existe plusieurs concepts du curriculum. Il n\'existe pas une méthodologie universelle de conception curriculaire. Le curriculum doit être flexible, adaptée au contexte et orientée vers le développement des étudiants et de la société.',
+    audio: 'Les fondements du curriculum. Il existe plusieurs concepts du curriculum, mais aucune méthodologie universelle ne s\'impose. Le curriculum a évolué historiquement en répondant aux transformations sociales et culturelles. Il doit être flexible, adapté au contexte, et orienté vers le développement des étudiants et de la société.',
+    children: [
+      { emoji:'🎯', title:'Objectifs de la conception',
+        items:['Structurer les processus éducatifs','Répondre aux besoins sociaux et culturels','Organiser l\'enseignement-apprentissage','Construire une proposition curriculaire cohérente'] },
+      { emoji:'✨', title:'Caractéristiques',
+        items:['Flexible','Adaptée au contexte','Orientée vers le développement des étudiants et de la société'] },
+      { emoji:'📅', title:'Évolution historique',
+        text:'Le curriculum a évolué en répondant aux transformations sociales, scientifiques, technologiques, politiques et culturelles.' }
+    ]
+  },
+  {
+    emoji: '⚙️', color: '#60a5fa',
+    title: 'PROCESSUS CURRICULAIRES',
+    sub: 'Gestion · Conception · Organisation',
+    desc: 'Trois dimensions complémentaires définissent le processus curriculaire: administrative (gestion), créative (conception) et technique (organisation).',
+    audio: 'Les processus curriculaires s\'articulent autour de trois dimensions. La gestion curriculaire, dimension administrative, assure le contrôle et la planification institutionnelle. Selon Franco et al. 2000, le curriculum répond aux besoins de la société et tient compte des changements scientifiques, technologiques, politiques, sociaux et culturels. La conception curriculaire, dimension créative, relie le social et l\'institutionnel. Selon Guarro en 2002, c\'est un processus non linéaire, participatif, basé sur un flux continu de décisions. L\'organisation curriculaire, dimension technique, systématise les contenus et les expériences d\'apprentissage à travers deux processus fondamentaux: la séquentialité et la structuration.',
+    children: [
+      { emoji:'🏢', title:'Gestion curriculaire — Dimension administrative',
+        text:'Processus de contrôle et de planification institutionnelle. Selon Franco et al. (2000): répond aux besoins de la société, tient compte des changements scientifiques, technologiques, politiques et culturels.',
+        items:['Mécanismes de contrôle','Contextes sociaux et technologiques','Planification institutionnelle','Construction d\'un citoyen intégral'] },
+      { emoji:'💡', title:'Conception curriculaire — Dimension créative',
+        text:'Selon Guarro (2002): processus non linéaire, participatif, basé sur un flux continu de décisions.',
+        items:['Accords disciplinaires','Stratégies pédagogiques','Rôles et responsabilités','Environnements d\'apprentissage','Participation des acteurs éducatifs'] },
+      { emoji:'🔧', title:'Organisation curriculaire — Dimension technique',
+        text:'Systématisation progressive reliant connaissances et expériences d\'apprentissage.',
+        items:['Séquentialité: ordre des contenus','Structuration: relations entre contenus','Praticité et cohérence','Contrôle et rationalisation'] }
+    ]
+  },
+  {
+    emoji: '🗺️', color: '#a78bfa',
+    title: 'MODÈLES DE CONCEPTION',
+    sub: 'Cascade · Opportuniste · Couches de nécessité',
+    desc: 'Toutes les approches couvrent l\'analyse des besoins, l\'environnement, les objectifs, les contenus, la méthodologie et l\'évaluation. Elles diffèrent selon le moment, l\'ordre, le degré de rigueur et les ressources.',
+    audio: 'Les modèles de conception curriculaire. Le modèle en cascade est séquentiel et rigoureux. Ses étapes sont: analyse des besoins, analyse de l\'environnement, définition des principes et objectifs, sélection des contenus, méthodologie, et préparation des leçons. Il est systématique mais nécessite beaucoup de temps et de ressources. L\'approche opportuniste ciblée suit la devise: faire ce qu\'on peut quand on peut. On enseigne d\'abord, on ajuste ensuite. C\'est flexible mais peut laisser certaines parties incomplètes. Le modèle des couches de nécessité, proposé par Tessmer et Wedman en 1990, vise à atteindre un niveau suffisamment bon pour le moment. Chaque couche comprend une analyse de l\'environnement, des besoins, une stratégie pédagogique, des matériaux et une évaluation.',
+    children: [
+      { emoji:'🌊', title:'Modèle en cascade',
+        text:'Progression séquentielle: chaque étape devient l\'entrée de la suivante. Utilisé pour les manuels scolaires et projets bien financés.',
+        items:['Analyse des besoins','Analyse de l\'environnement','Objectifs','Contenus','Méthodologie','Préparation des leçons'] },
+      { emoji:'🎯', title:'Approche opportuniste ciblée',
+        text:'"Faire ce qu\'on peut quand on peut." Enseigner d\'abord, ajuster ensuite. Flexible et réaliste.',
+        items:['Format et présentation réalisés d\'abord','Amélioration progressive du curriculum','Flexible et réaliste','Peut laisser certaines parties incomplètes'] },
+      { emoji:'🧅', title:'Couches de nécessité — Tessmer & Wedman (1990)',
+        text:'"Suffisamment bon pour le moment." Critique des modèles rigides. Chaque couche comprend analyse, besoins, stratégie, matériaux et évaluation.',
+        items:['Identifier la contrainte principale','Déterminer le besoin urgent','Sélectionner les contenus essentiels','Choisir un format simple','Révisions progressives du curriculum'] }
+    ]
+  },
+  {
+    emoji: '🗣️', color: '#2dd4bf',
+    title: 'CURRICULUM EN LANGUES',
+    sub: 'Sens large · Sens restreint (Syllabus)',
+    desc: 'Le curriculum en langues peut être compris dans un sens large (ensemble du processus pédagogique) ou restreint (syllabus comme forme du curriculum development).',
+    audio: 'Le curriculum en langues. Dans un sens large, le curriculum inclut la planification, la méthodologie, les décisions pédagogiques, le rôle du professeur et de l\'apprenant, la motivation, et les facteurs spatiaux et temporels. Dans un sens restreint, il correspond au syllabus, c\'est-à-dire l\'organisation des contenus et les itinéraires d\'enseignement-apprentissage.',
+    children: [
+      { emoji:'🌐', title:'Sens large — Ensemble du processus pédagogique',
+        items:['Planification','Méthodologie','Prise de décisions pédagogiques','Rôle du professeur','Rôle de l\'apprenant','Motivation','Facteurs spatiaux et temporels'] },
+      { emoji:'📋', title:'Sens restreint — Syllabus',
+        text:'Compris comme forme du curriculum development.',
+        items:['Organisation des contenus','Itinéraires d\'enseignement-apprentissage'] }
+    ]
+  },
+  {
+    emoji: '📈', color: '#22d3ee',
+    title: 'ÉVOLUTION DES SYLLABUS',
+    sub: 'Années 1960 → Syllabus fonctionnels',
+    desc: 'Les syllabus ont évolué d\'une centration sur les aspects linguistiques vers une approche centrée sur la communication réelle et les fonctions communicatives.',
+    audio: 'L\'évolution des syllabus. Dans les années 1960, l\'accent était mis sur les aspects linguistiques et les compétences langagières. Dans les années 1970, face à la difficulté d\'utiliser la langue en dehors de la salle de classe, une nouvelle vision apparaît: l\'accent se déplace vers l\'usage réel de la langue et la communication. C\'est ainsi qu\'apparaissent les syllabus fonctionnels, où la langue est utilisée selon les intentions et les buts communicatifs.',
+    children: [
+      { emoji:'📌', title:'Années 1960',
+        items:['Accent sur les aspects linguistiques','Accent sur les compétences langagières','Approche structuraliste'] },
+      { emoji:'💬', title:'Années 1970 — Vers la communication',
+        text:'Problème: difficulté d\'utiliser la langue hors de la salle de classe. Nouvelle vision: usage réel et communication.',
+        items:['Usage réel de la langue','Communication authentique','Apparition des syllabus fonctionnels'] },
+      { emoji:'📢', title:'Syllabus fonctionnels',
+        text:'La langue est utilisée selon les intentions et les buts communicatifs.',
+        items:['Fonctions communicatives','Intentions du locuteur','Contextes réels d\'usage'] }
+    ]
+  },
+  {
+    emoji: '🧭', color: '#4ade80',
+    title: 'TENDANCES CURRICULAIRES',
+    sub: 'Besoins · Produits · Processus · Clark',
+    desc: 'Trois classifications des tendances curriculaires: selon les besoins, selon l\'orientation produit/processus, et selon Clark (humanisme classique, reconstructionnisme, progressivisme).',
+    audio: 'Les tendances curriculaires. Une première classification distingue les programmes basés sur les besoins et les programmes construits par les interactions en classe. Une deuxième classification oppose les syllabus orientés vers les produits — grammaticaux et fonctionnels — aux syllabus orientés vers les processus, comme les syllabus basés sur les tâches. Clark distingue trois orientations: l\'humanisme classique, centré sur l\'analyse de la langue cible; le reconstructionnisme, centré sur les objectifs; et le progressivisme, centré sur le processus d\'apprentissage.',
+    children: [
+      { emoji:'1️⃣', title:'1ère classification — Selon les besoins',
+        items:['Programme basé sur les besoins des apprenants','Programme construit par les interactions en classe'] },
+      { emoji:'2️⃣', title:'2ème classification — Produits vs Processus',
+        items:['Produits: syllabus grammaticaux','Produits: syllabus fonctionnels','Processus: syllabus basés sur les tâches'] },
+      { emoji:'3️⃣', title:'3ème classification — Clark',
+        items:['Humanisme classique: analyse de la langue cible, peu centré sur les besoins','Reconstructionnisme: importance des objectifs, meilleurs résultats','Progressivisme: centré sur le processus, intérêt pour l\'apprentissage'] }
+    ]
+  },
+  {
+    emoji: '📖', color: '#fb923c',
+    title: 'CECR & COMPOSANTES',
+    sub: '3 orientations · 6 composantes · Types de savoirs',
+    desc: 'Le Cadre Européen Commun de Référence promeut la diversification linguistique, le transfert de compétences et une éducation linguistique générale. Il n\'existe pas un curriculum unique.',
+    audio: 'Le Cadre Européen Commun de Référence pour les langues. Il présente trois orientations: la diversification linguistique, le transfert des compétences entre langues, et l\'éducation linguistique générale. Il distingue trois types de savoirs: le savoir, le savoir-faire et le savoir apprendre. La compétence communicative comprend six composantes: linguistique, sociolinguistique, discursive, socioculturelle, stratégique, et sociale et interpersonnelle. L\'idée clé est qu\'il n\'existe pas un curriculum unique: les résultats sont différents selon les matières et les contextes.',
+    children: [
+      { emoji:'🏁', title:'Trois orientations du CECR',
+        items:['Diversification linguistique','Transfert des compétences entre langues','Éducation linguistique générale'] },
+      { emoji:'📚', title:'Types de savoirs',
+        items:['Savoir (connaissances déclaratives)','Savoir-faire (compétences pratiques)','Savoir apprendre (autonomie d\'apprentissage)'] },
+      { emoji:'💬', title:'6 composantes de la communication',
+        items:['Linguistique','Sociolinguistique','Discursive','Socioculturelle','Stratégique','Sociale et interpersonnelle'] }
+    ]
+  },
+  {
+    emoji: '🔬', color: '#f472b6',
+    title: 'MÉTHODOLOGIES CURRICULAIRES',
+    sub: 'Classiques · Technologiques · Sociopolitiques · Constructivistes',
+    desc: 'Quatre grandes familles de méthodologies: classiques (Tyler, Taba, Johnson), technologiques (Glazman, Arnaz, Arredondo), sociopolitiques (critique, modulaire) et constructivistes (construction progressive du savoir).',
+    audio: 'Les méthodologies curriculaires. Les méthodologies classiques comprennent: Mauritz Johnson, axé sur les résultats d\'apprentissage structurés; Hilda Taba en 1962 avec son processus de diagnostic, formulation d\'objectifs, sélection et organisation des contenus et des activités, et évaluation; et Ralph Tyler en 1979 avec ses quatre questions: quels objectifs atteindre, quelles expériences éducatives utiliser, comment atteindre les objectifs, et comment vérifier les résultats. Les méthodologies technologiques de Glazman, Arnaz et Arredondo misent sur la rationalité et la clarté, mais sont critiquées pour leur vision mécaniste. Les méthodologies sociopolitiques critiquent l\'approche technologique et proposent un curriculum reconceptualiste et modulaire, avec des auteurs comme Stenhouse et Coll. Les méthodologies constructivistes, basées sur le constructivisme psychologique, voient la connaissance comme une construction progressive par l\'apprenant actif et réflexif.',
+    children: [
+      { emoji:'📜', title:'Méthodologies classiques',
+        items:['Mauritz Johnson: résultats d\'apprentissage structurés, critères culturels','Hilda Taba (1962): diagnostic → objectifs → contenus → activités → évaluation','Ralph Tyler (1979): Quels objectifs? Quelles expériences? Comment atteindre? Comment vérifier?'] },
+      { emoji:'⚗️', title:'Méthodologies technologiques',
+        text:'Rationalité, clarté, cohérence, intégration curriculaire. Critiques: vision mécaniste et simpliste.',
+        items:['Glazman & Ibarrola (1978): objectifs généraux → spécifiques → intermédiaires → évaluation','José Antonio Arnaz (1981): objectifs → plan d\'études → évaluation → fiches → mise en œuvre','Victor Arredondo (1979): besoins nationaux, profil professionnel, marché du travail'] },
+      { emoji:'🏛️', title:'Méthodologies sociopolitiques',
+        text:'Critique des approches technologiques. Relation éducation-société. Dimensions sociales, politiques et idéologiques.',
+        items:['Approche reconceptualiste','Curriculum modulaire','Lawrence Stenhouse','César Coll'] },
+      { emoji:'🧠', title:'Méthodologies constructivistes',
+        text:'Base théorique: constructivisme psychologique. La connaissance se construit progressivement.',
+        items:['Élaboration de schémas et modèles','Confrontation des connaissances','Rôle actif et réflexif de l\'apprenant','Construction progressive du savoir'] }
+    ]
+  },
+  {
+    emoji: '🌿', color: '#facc15',
+    title: 'FLEXIBILITÉ CURRICULAIRE',
+    sub: 'Adaptation · Innovation · Amélioration continue',
+    desc: 'Tous les modèles reconnaissent l\'importance de la flexibilité curriculaire. Le curriculum dépasse le plan d\'études et inclut théorie, pratique, recherche et évaluation.',
+    audio: 'La flexibilité curriculaire. Tous les modèles reconnaissent que le curriculum doit être flexible. Cette flexibilité permet l\'adaptation aux changements sociaux, l\'innovation pédagogique, la pertinence des contenus et l\'amélioration des curriculums. En conclusion, le curriculum dépasse le simple plan d\'études: il inclut théorie, pratique, recherche et évaluation, et doit être continuellement amélioré selon le contexte éducatif.',
+    children: [
+      { emoji:'🔄', title:'La flexibilité permet',
+        items:['Adaptation aux changements sociaux','Innovation pédagogique','Pertinence des contenus','Amélioration continue des curriculums'] },
+      { emoji:'🏁', title:'Conclusion générale',
+        text:'Le curriculum dépasse le simple plan d\'études.',
+        items:['Inclut: théorie, pratique, recherche et évaluation','Dépasse le plan d\'études traditionnel','Doit être continuellement amélioré selon le contexte éducatif'] }
+    ]
+  }
+];
+
+/* ================================================================
+   RENDER
+================================================================ */
+function renderCard(branch, i) {
+  const childrenHTML = branch.children.map(ch => {
+    const textHTML = ch.text ? `<div class="sub-text">${ch.text}</div>` : '';
+    const itemsHTML = ch.items
+      ? `<ul class="sub-items">${ch.items.map(it => `<li>${it}</li>`).join('')}</ul>`
+      : '';
+    return `
+      <div class="sub-node">
+        <div class="sub-head">
+          <span class="sub-emoji">${ch.emoji}</span>
+          <span class="sub-title">${ch.title}</span>
+        </div>
+        ${textHTML}${itemsHTML}
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="card" style="--cc:${branch.color}" id="card-${i}">
+      <div class="card-header" onclick="toggleCard(${i})">
+        <span class="card-emoji">${branch.emoji}</span>
+        <div class="card-meta">
+          <div class="card-title">${branch.title}</div>
+          <div class="card-sub">${branch.sub}</div>
+        </div>
+        <div class="card-right">
+          <button class="audio-btn" data-text="${escHtml(branch.audio)}" onclick="event.stopPropagation();speakNode(this)">🔊</button>
+          <span class="chevron">▾</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-inner">
+          <div class="card-desc">${branch.desc}</div>
+          <div class="sub-list">${childrenHTML}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function escHtml(s) {
+  return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+document.getElementById('grid').innerHTML = BRANCHES.map(renderCard).join('');
+
+/* ================================================================
+   INTERACTIVITY
+================================================================ */
+function toggleCard(i) {
+  document.getElementById(`card-${i}`).classList.toggle('open');
+}
+
+let expanded = false;
+document.getElementById('btn-expand').addEventListener('click', () => {
+  expanded = !expanded;
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('open', expanded));
+  document.getElementById('btn-expand').textContent = expanded ? '↕ Tout réduire' : '↕ Tout développer';
+});
+
+/* ================================================================
+   AUDIO — Web Speech API
+================================================================ */
+let currentBtn = null;
+let reading = false;
+let utteranceQueue = [];
+
+function stopAll() {
+  window.speechSynthesis.cancel();
+  reading = false;
+  utteranceQueue = [];
+  if (currentBtn) { currentBtn.classList.remove('playing'); currentBtn.innerHTML = '🔊'; currentBtn = null; }
+  document.getElementById('btn-lire').classList.remove('active');
+  document.getElementById('btn-lire').textContent = '▶ Lire tout';
+}
+
+document.getElementById('btn-stop').addEventListener('click', stopAll);
+
+function speakNode(btn) {
+  if (btn === currentBtn && reading) { stopAll(); return; }
+  stopAll();
+  const text = btn.getAttribute('data-text');
+  if (!text) return;
+  currentBtn = btn;
+  btn.classList.add('playing');
+  btn.innerHTML = '<span class="audio-dot"></span> En cours…';
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'fr-FR';
+  u.rate = 0.92;
+  u.pitch = 1;
+  u.onend = () => {
+    btn.classList.remove('playing');
+    btn.innerHTML = '🔊';
+    currentBtn = null;
+    reading = false;
+  };
+  u.onerror = () => { btn.classList.remove('playing'); btn.innerHTML = '🔊'; currentBtn = null; reading = false; };
+  reading = true;
+  window.speechSynthesis.speak(u);
+}
+
+/* Listen to all audio buttons */
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.audio-btn');
+  if (btn) speakNode(btn);
+});
+
+/* ── Lire tout (header) ───────────────── */
+document.getElementById('btn-lire').addEventListener('click', () => {
+  if (reading) { stopAll(); return; }
+  stopAll();
+
+  const centralText = "La conception curriculaire est un processus dynamique, continu et participatif visant à organiser l'enseignement-apprentissage selon les besoins sociaux, culturels et éducatifs.";
+  const allTexts = [centralText, ...BRANCHES.map(b => b.title + '. ' + b.audio)];
+
+  const lireBtn = document.getElementById('btn-lire');
+  lireBtn.classList.add('active');
+  lireBtn.textContent = '⏸ En lecture…';
+
+  let idx = 0;
+  function speakNext() {
+    if (idx >= allTexts.length || !reading) { stopAll(); return; }
+    const u = new SpeechSynthesisUtterance(allTexts[idx++]);
+    u.lang = 'fr-FR'; u.rate = 0.92; u.pitch = 1;
+    u.onend = () => { if (reading) speakNext(); };
+    u.onerror = () => stopAll();
+    window.speechSynthesis.speak(u);
+  }
+
+  reading = true;
+  speakNext();
+});
+
+/* Fix Chrome bug: speechSynthesis pauses after ~15s */
+setInterval(() => {
+  if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+    window.speechSynthesis.pause();
+    window.speechSynthesis.resume();
+  }
+}, 12000);
+</script>
+</body>
+</html>
