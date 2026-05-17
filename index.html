@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Conception Curriculaire 🎀 Ma Principessa</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --cream:#FFF8FB; --soft:#FFD6E7; --mid:#FFB3CC; --main:#FF85A1;
@@ -828,29 +827,36 @@ setInterval(()=>{
 },12000);
 
 /* ══════════════════════════════════════
-   IMAGES — Supabase (compartido, persiste para todos)
+   IMAGES — Supabase REST directo (sin SDK)
 ══════════════════════════════════════ */
-const sb = supabase.createClient(
-  'https://gtywqktcejpsxrpodaht.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eXdxa3RjZWpwc3hycG9kYWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjQ4OTUsImV4cCI6MjA5NDU0MDg5NX0.wqTLTTDbog054znk7RJTgR0Ejoeo1neEdRswcGEAWJU'
-);
+const SB_URL = 'https://gtywqktcejpsxrpodaht.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eXdxa3RjZWpwc3hycG9kYWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjQ4OTUsImV4cCI6MjA5NDU0MDg5NX0.wqTLTTDbog054znk7RJTgR0Ejoeo1neEdRswcGEAWJU';
+const SB_HDR = {
+  'apikey': SB_KEY,
+  'Authorization': `Bearer ${SB_KEY}`,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+};
 
-let sharedData = { nodes: {} }; /* { "0": [{id, data}, ...], ... } */
+let sharedData  = { nodes: {} }; /* imágenes guardadas en Supabase */
+const pendingImgs = {};           /* imágenes seleccionadas pero aún no guardadas */
 
 async function fetchSharedData(){
-  const { data } = await sb.from('images').select('*').order('created_at');
-  sharedData = { nodes: {} };
-  (data||[]).forEach(row => {
-    const k = String(row.node_idx);
-    if(!sharedData.nodes[k]) sharedData.nodes[k] = [];
-    sharedData.nodes[k].push({ id: row.id, data: row.data });
-  });
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/images?select=*&order=created_at.asc`, { headers: SB_HDR });
+    const data = await r.json();
+    sharedData = { nodes: {} };
+    (Array.isArray(data) ? data : []).forEach(row => {
+      const k = String(row.node_idx);
+      if(!sharedData.nodes[k]) sharedData.nodes[k] = [];
+      sharedData.nodes[k].push({ id: row.id, data: row.data });
+    });
+  } catch(e) { sharedData = { nodes: {} }; }
 }
 
-function loadImgs(i){ return sharedData.nodes[String(i)] || []; }
-/* imgs[j].data = base64 src, imgs[j].id = supabase row id */
+function loadImgs(i)    { return sharedData.nodes[String(i)] || []; }
+function loadPending(i) { return pendingImgs[String(i)]      || []; }
 
-/* compress image to max 900px / JPEG 0.75 before storing */
 function compressImg(file){
   return new Promise(resolve => {
     const reader = new FileReader();
@@ -877,8 +883,7 @@ function setUploadStatus(i, msg){
 }
 
 function updateNodeBadge(i){
-  const imgs = loadImgs(i);
-  const n = imgs.length;
+  const n = loadImgs(i).length + loadPending(i).length;
   [`#nd${i} .n-img-badge`, `#mob-card-${i} .mob-img-badge`].forEach(sel => {
     const el = document.querySelector(sel);
     if(!el) return;
@@ -888,33 +893,67 @@ function updateNodeBadge(i){
 }
 
 function renderImgGallery(i){
-  const imgs = loadImgs(i);
-  const empty = imgs.length === 0
-    ? `<div class="img-empty">🌸 Aucune image pour l'instant<br><span style="font-size:11px;font-weight:400">Clique sur le bouton pour en ajouter</span></div>`
-    : '';
-  const items = imgs.map((img, j) => `
+  const imgs    = loadImgs(i);
+  const pending = loadPending(i);
+  const total   = imgs.length + pending.length;
+
+  const savedItems = imgs.map((img, j) => `
     <div class="img-item">
-      <img src="${img.data}" alt="image ${j+1}" onclick="openLightbox(this.src)"/>
+      <img src="${img.data}" alt="imagen ${j+1}" onclick="openLightbox(this.src)"/>
       <button class="img-del" title="Supprimer" onclick="deleteImg(${i},${j})">✕</button>
     </div>`).join('');
+
+  const pendingItems = pending.map((p, j) => `
+    <div class="img-item" style="outline:3px dashed var(--main);outline-offset:2px">
+      <img src="${p.preview}" alt="en attente ${j+1}" onclick="openLightbox(this.src)"/>
+      <button class="img-del" title="Quitar" onclick="removePending(${i},${j})"
+              style="background:#FFE0EC">✕</button>
+    </div>`).join('');
+
+  const saveBtn = pending.length > 0 ? `
+    <button class="btn btn-p" style="margin-top:12px;width:100%;font-size:13px;padding:10px 16px"
+            onclick="saveImgs(${i})">
+      💾 Guardar ${pending.length} imagen${pending.length>1?'es':''}
+    </button>` : '';
+
+  const empty = total === 0
+    ? `<div class="img-empty">🌸 Aucune image pour l'instant<br>
+       <span style="font-size:11px;font-weight:400">Clique sur le bouton pour en ajouter</span></div>`
+    : '';
+
   return `
     <div class="img-section" data-node-idx="${i}">
       <div class="img-section-hd">
-        <span class="img-section-title">🖼️ Images (${imgs.length})</span>
+        <span class="img-section-title">🖼️ Images (${total})</span>
         <label class="img-upload-btn" for="img-input" onclick="prepUpload(${i})">
           📎 Ajouter des images
         </label>
       </div>
       <div class="img-upload-status img-status-${i}"></div>
       ${empty}
-      <div class="img-grid">${items}</div>
+      <div class="img-grid">${savedItems}${pendingItems}</div>
+      ${saveBtn}
     </div>`;
 }
 
 function prepUpload(i){
   const input = document.getElementById('img-input');
   input.value = '';
-  input.onchange = () => handleImgUpload(i, input.files);
+  input.onchange = async () => {
+    if(!input.files || !input.files.length) return;
+    setUploadStatus(i, '⏳ Preparando…');
+    const previews = await Promise.all(Array.from(input.files).map(compressImg));
+    if(!pendingImgs[String(i)]) pendingImgs[String(i)] = [];
+    previews.forEach(p => pendingImgs[String(i)].push({ preview: p }));
+    setUploadStatus(i, '');
+    refreshGallery(i);
+  };
+}
+
+function removePending(i, j){
+  if(!pendingImgs[String(i)]) return;
+  pendingImgs[String(i)].splice(j, 1);
+  refreshGallery(i);
 }
 
 function refreshGallery(i){
@@ -926,26 +965,36 @@ function refreshGallery(i){
   updateNodeBadge(i);
 }
 
-async function handleImgUpload(i, files){
-  if(!files || !files.length) return;
-  setUploadStatus(i, '⏳ Subiendo…');
-  try{
-    const compressed = await Promise.all(Array.from(files).map(compressImg));
-    const inserts = compressed.map(d => ({ node_idx: i, data: d }));
-    const { data, error } = await sb.from('images').insert(inserts).select();
-    if(error) throw error;
+async function saveImgs(i){
+  const pending = loadPending(i);
+  if(!pending.length) return;
+  setUploadStatus(i, '⏳ Guardando…');
+  try {
+    const inserts = pending.map(p => ({ node_idx: i, data: p.preview }));
+    const r = await fetch(`${SB_URL}/rest/v1/images`, {
+      method: 'POST', headers: SB_HDR, body: JSON.stringify(inserts)
+    });
+    if(!r.ok) throw new Error(await r.text());
+    const data = await r.json();
     if(!sharedData.nodes[String(i)]) sharedData.nodes[String(i)] = [];
     data.forEach(row => sharedData.nodes[String(i)].push({ id: row.id, data: row.data }));
+    pendingImgs[String(i)] = [];
     refreshGallery(i);
-    setUploadStatus(i, '');
-  } catch(e){
-    setUploadStatus(i, '❌ Error al subir. Intenta de nuevo.');
+    setUploadStatus(i, '✅ ¡Imágenes guardadas! Todos pueden verlas ahora 🌸');
+    setTimeout(() => setUploadStatus(i, ''), 4000);
+  } catch(e) {
+    setUploadStatus(i, '❌ Error al guardar. Intenta de nuevo.');
+    console.error(e);
   }
 }
 
 async function deleteImg(i, j){
   const img = loadImgs(i)[j];
-  await sb.from('images').delete().eq('id', img.id);
+  try {
+    await fetch(`${SB_URL}/rest/v1/images?id=eq.${img.id}`, {
+      method: 'DELETE', headers: SB_HDR
+    });
+  } catch(e) { console.error(e); }
   sharedData.nodes[String(i)].splice(j, 1);
   refreshGallery(i);
 }
