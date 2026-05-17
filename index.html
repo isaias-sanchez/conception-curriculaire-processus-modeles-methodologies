@@ -411,8 +411,6 @@ header{
   <img id="lb-img" src="" alt=""/>
 </div>
 
-<!-- hidden file input (shared, reused per node) -->
-<input type="file" id="img-input" accept="image/*" multiple style="display:none"/>
 
 <script>
 /* ══════════════════════════════════════
@@ -838,8 +836,7 @@ const SB_HDR = {
   'Prefer': 'return=representation'
 };
 
-let sharedData  = { nodes: {} }; /* imágenes guardadas en Supabase */
-const pendingImgs = {};           /* imágenes seleccionadas pero aún no guardadas */
+let sharedData = { nodes: {} };
 
 async function fetchSharedData(){
   try {
@@ -854,8 +851,7 @@ async function fetchSharedData(){
   } catch(e) { sharedData = { nodes: {} }; }
 }
 
-function loadImgs(i)    { return sharedData.nodes[String(i)] || []; }
-function loadPending(i) { return pendingImgs[String(i)]      || []; }
+function loadImgs(i){ return sharedData.nodes[String(i)] || []; }
 
 function compressImg(file){
   return new Promise(resolve => {
@@ -883,7 +879,7 @@ function setUploadStatus(i, msg){
 }
 
 function updateNodeBadge(i){
-  const n = loadImgs(i).length + loadPending(i).length;
+  const n = loadImgs(i).length;
   [`#nd${i} .n-img-badge`, `#mob-card-${i} .mob-img-badge`].forEach(sel => {
     const el = document.querySelector(sel);
     if(!el) return;
@@ -893,67 +889,64 @@ function updateNodeBadge(i){
 }
 
 function renderImgGallery(i){
-  const imgs    = loadImgs(i);
-  const pending = loadPending(i);
-  const total   = imgs.length + pending.length;
-
-  const savedItems = imgs.map((img, j) => `
+  const imgs = loadImgs(i);
+  const items = imgs.map((img, j) => `
     <div class="img-item">
       <img src="${img.data}" alt="imagen ${j+1}" onclick="openLightbox(this.src)"/>
       <button class="img-del" title="Supprimer" onclick="deleteImg(${i},${j})">✕</button>
     </div>`).join('');
-
-  const pendingItems = pending.map((p, j) => `
-    <div class="img-item" style="outline:3px dashed var(--main);outline-offset:2px">
-      <img src="${p.preview}" alt="en attente ${j+1}" onclick="openLightbox(this.src)"/>
-      <button class="img-del" title="Quitar" onclick="removePending(${i},${j})"
-              style="background:#FFE0EC">✕</button>
-    </div>`).join('');
-
-  const saveBtn = pending.length > 0 ? `
-    <button class="btn btn-p" style="margin-top:12px;width:100%;font-size:13px;padding:10px 16px"
-            onclick="saveImgs(${i})">
-      💾 Guardar ${pending.length} imagen${pending.length>1?'es':''}
-    </button>` : '';
-
-  const empty = total === 0
+  const empty = imgs.length === 0
     ? `<div class="img-empty">🌸 Aucune image pour l'instant<br>
-       <span style="font-size:11px;font-weight:400">Clique sur le bouton pour en ajouter</span></div>`
+       <span style="font-size:11px;font-weight:400">Toca el botón para agregar</span></div>`
     : '';
-
   return `
     <div class="img-section" data-node-idx="${i}">
       <div class="img-section-hd">
-        <span class="img-section-title">🖼️ Images (${total})</span>
-        <label class="img-upload-btn" for="img-input" onclick="prepUpload(${i})">
+        <span class="img-section-title">🖼️ Images (${imgs.length})</span>
+        <button class="img-upload-btn" onclick="triggerUpload(${i})">
           📎 Ajouter des images
-        </label>
+        </button>
       </div>
       <div class="img-upload-status img-status-${i}"></div>
       ${empty}
-      <div class="img-grid">${savedItems}${pendingItems}</div>
-      ${saveBtn}
+      <div class="img-grid">${items}</div>
     </div>`;
 }
 
-function prepUpload(i){
-  const input = document.getElementById('img-input');
-  input.value = '';
-  input.onchange = async () => {
-    if(!input.files || !input.files.length) return;
-    setUploadStatus(i, '⏳ Preparando…');
-    const previews = await Promise.all(Array.from(input.files).map(compressImg));
-    if(!pendingImgs[String(i)]) pendingImgs[String(i)] = [];
-    previews.forEach(p => pendingImgs[String(i)].push({ preview: p }));
-    setUploadStatus(i, '');
-    refreshGallery(i);
-  };
-}
+/* Crea un input fresco, llama .click() — funciona en todos los browsers incluyendo iOS */
+function triggerUpload(i){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.multiple = true;
+  input.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+  document.body.appendChild(input);
 
-function removePending(i, j){
-  if(!pendingImgs[String(i)]) return;
-  pendingImgs[String(i)].splice(j, 1);
-  refreshGallery(i);
+  input.addEventListener('change', async () => {
+    document.body.removeChild(input);
+    if(!input.files || !input.files.length) return;
+    setUploadStatus(i, '⏳ Comprimiendo…');
+    try {
+      const compressed = await Promise.all(Array.from(input.files).map(compressImg));
+      setUploadStatus(i, '💾 Guardando…');
+      const inserts = compressed.map(d => ({ node_idx: Number(i), data: d }));
+      const r = await fetch(`${SB_URL}/rest/v1/images`, {
+        method: 'POST', headers: SB_HDR, body: JSON.stringify(inserts)
+      });
+      if(!r.ok) throw new Error(await r.text());
+      const rows = await r.json();
+      if(!sharedData.nodes[String(i)]) sharedData.nodes[String(i)] = [];
+      rows.forEach(row => sharedData.nodes[String(i)].push({ id: row.id, data: row.data }));
+      refreshGallery(i);
+      setUploadStatus(i, '✅ ¡Guardado! Todos pueden verlo 🌸');
+      setTimeout(() => setUploadStatus(i, ''), 4000);
+    } catch(e) {
+      setUploadStatus(i, '❌ Error al guardar. Intenta de nuevo.');
+      console.error('upload error:', e);
+    }
+  });
+
+  input.click();
 }
 
 function refreshGallery(i){
@@ -963,29 +956,6 @@ function refreshGallery(i){
     el.replaceWith(tmp.firstElementChild);
   });
   updateNodeBadge(i);
-}
-
-async function saveImgs(i){
-  const pending = loadPending(i);
-  if(!pending.length) return;
-  setUploadStatus(i, '⏳ Guardando…');
-  try {
-    const inserts = pending.map(p => ({ node_idx: i, data: p.preview }));
-    const r = await fetch(`${SB_URL}/rest/v1/images`, {
-      method: 'POST', headers: SB_HDR, body: JSON.stringify(inserts)
-    });
-    if(!r.ok) throw new Error(await r.text());
-    const data = await r.json();
-    if(!sharedData.nodes[String(i)]) sharedData.nodes[String(i)] = [];
-    data.forEach(row => sharedData.nodes[String(i)].push({ id: row.id, data: row.data }));
-    pendingImgs[String(i)] = [];
-    refreshGallery(i);
-    setUploadStatus(i, '✅ ¡Imágenes guardadas! Todos pueden verlas ahora 🌸');
-    setTimeout(() => setUploadStatus(i, ''), 4000);
-  } catch(e) {
-    setUploadStatus(i, '❌ Error al guardar. Intenta de nuevo.');
-    console.error(e);
-  }
 }
 
 async function deleteImg(i, j){
