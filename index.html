@@ -388,8 +388,7 @@ header{
         <div class="c-emoji">🎓</div>
         <div class="c-title">CONCEPTION CURRICULAIRE</div>
         <div class="c-sub">Processus · Modèles · Méthodologies</div>
-        <button class="c-audio-btn"
-          data-text="La conception curriculaire est un processus dynamique, continu et participatif. Il vise à structurer les processus éducatifs, à répondre aux besoins sociaux et culturels, à organiser l'enseignement et l'apprentissage, et à construire une proposition curriculaire cohérente. Le curriculum est flexible, adapté au contexte, et orienté vers le développement des étudiants et de la société.">
+        <button class="c-audio-btn" data-audio-idx="0">
           🔊 Écouter
         </button>
       </div>
@@ -550,7 +549,7 @@ BRANCHES.forEach((b, i) => {
       <div class="n-ttl" style="color:${PINK[i]}">${b.title}</div>
       <div class="n-sub">${b.sub}</div>
       <div class="n-foot">
-        <button class="n-aud" data-text="${esc(branchAudioText(b))}" onclick="event.stopPropagation();speakNode(this)">🔊 Écouter</button>
+        <button class="n-aud" data-audio-idx="${i+1}" onclick="event.stopPropagation();speakNode(this)">🔊 Écouter</button>
         <span class="n-arrow">↗ Détails</span>
       </div>
       <span class="n-img-badge" style="display:none"></span>
@@ -748,7 +747,7 @@ function buildMobile(){
         <div class="mob-bd-in">
 
           <div class="mob-aud-row">
-            <button class="mob-aud-btn" data-text="${esc(branchAudioText(b))}"
+            <button class="mob-aud-btn" data-audio-idx="${i+1}"
                     onclick="speakNode(this)">🔊 Écouter en français</button>
           </div>
 
@@ -782,25 +781,46 @@ function toggleMobCard(i){
 }
 
 /* ══════════════════════════════════════
-   AUDIO
+   AUDIO — Voz de Issa Maria ❤️
 ══════════════════════════════════════ */
-let curBtn=null, reading=false;
+const AUDIO_SRCS = [
+  'audio/0.opus', /* nodo central          */
+  'audio/1.opus', /* FONDEMENTS            */
+  'audio/2.opus', /* PROCESSUS             */
+  'audio/3.opus', /* MODÈLES               */
+  'audio/4.opus', /* CURRICULUM EN LANGUES */
+  'audio/5.opus', /* SYLLABUS              */
+  'audio/6.opus', /* TENDANCES             */
+  'audio/7.opus', /* CECR                  */
+  'audio/8.opus', /* MÉTHODOLOGIES         */
+  'audio/9.opus', /* FLEXIBILITÉ           */
+];
+
+let curBtn=null, curAudio=null, reading=false;
 
 function stopAll(){
-  window.speechSynthesis.cancel(); reading=false;
+  if(curAudio){ curAudio.pause(); curAudio.currentTime=0; curAudio=null; }
+  reading=false;
   if(curBtn){ curBtn.classList.remove('playing'); curBtn.innerHTML='🔊 Écouter'; curBtn=null; }
   document.getElementById('btn-lire').textContent='▶ Lire tout';
 }
 
 function speakNode(btn){
+  const idx=parseInt(btn.dataset.audioIdx);
+  if(isNaN(idx)) return;
   if(btn===curBtn&&reading){ stopAll(); return; }
-  stopAll(); curBtn=btn;
-  btn.classList.add('playing'); btn.innerHTML='<span class="adot"></span> En cours…';
-  const u=new SpeechSynthesisUtterance(btn.dataset.text||'');
-  u.lang='fr-FR'; u.rate=.92; u.pitch=1;
-  u.onend=()=>{ btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
-  u.onerror=()=>{ btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter'; curBtn=null; reading=false; };
-  reading=true; window.speechSynthesis.speak(u);
+  stopAll();
+  curBtn=btn;
+  btn.classList.add('playing');
+  btn.innerHTML='<span class="adot"></span> En cours…';
+  curAudio=new Audio(AUDIO_SRCS[idx]);
+  reading=true;
+  const done=()=>{
+    btn.classList.remove('playing'); btn.innerHTML='🔊 Écouter';
+    curBtn=null; curAudio=null; reading=false;
+  };
+  curAudio.onended=done; curAudio.onerror=done;
+  curAudio.play().catch(done);
 }
 
 document.addEventListener('click', e=>{
@@ -811,30 +831,20 @@ document.addEventListener('click', e=>{
 document.getElementById('btn-lire').addEventListener('click', ()=>{
   if(reading){ stopAll(); return; }
   stopAll();
-  const texts=[
-    'La conception curriculaire est un processus dynamique, continu et participatif visant à organiser l\'enseignement-apprentissage selon les besoins sociaux, culturels et éducatifs.',
-    ...BRANCHES.map(b=>branchAudioText(b))
-  ];
   document.getElementById('btn-lire').textContent='⏸ En lecture…';
-  let idx=0; reading=true;
+  reading=true;
+  let idx=0;
   function nxt(){
-    if(idx>=texts.length||!reading){stopAll();return;}
-    const u=new SpeechSynthesisUtterance(texts[idx++]);
-    u.lang='fr-FR'; u.rate=.92;
-    u.onend=()=>{if(reading)nxt();}; u.onerror=stopAll;
-    window.speechSynthesis.speak(u);
+    if(idx>=AUDIO_SRCS.length||!reading){ stopAll(); return; }
+    curAudio=new Audio(AUDIO_SRCS[idx++]);
+    curAudio.onended=()=>{ if(reading) nxt(); };
+    curAudio.onerror=()=>{ if(reading) nxt(); };
+    curAudio.play().catch(stopAll);
   }
   nxt();
 });
 
 document.getElementById('btn-stop').addEventListener('click', stopAll);
-
-/* Chrome pause bug fix */
-setInterval(()=>{
-  if(window.speechSynthesis.speaking&&!window.speechSynthesis.paused){
-    window.speechSynthesis.pause(); window.speechSynthesis.resume();
-  }
-},12000);
 
 /* ══════════════════════════════════════
    IMAGES — Supabase REST directo (sin SDK)
