@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Conception Curriculaire 🎀 Ma Principessa</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --cream:#FFF8FB; --soft:#FFD6E7; --mid:#FFB3CC; --main:#FF85A1;
@@ -827,28 +828,27 @@ setInterval(()=>{
 },12000);
 
 /* ══════════════════════════════════════
-   IMAGES — shared via jsonblob (visible para todos)
+   IMAGES — Supabase (compartido, persiste para todos)
 ══════════════════════════════════════ */
-const API = '/api/images';
-let sharedData = { nodes: {} };
+const sb = supabase.createClient(
+  'https://gtywqktcejpsxrpodaht.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd0eXdxa3RjZWpwc3hycG9kYWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NjQ4OTUsImV4cCI6MjA5NDU0MDg5NX0.wqTLTTDbog054znk7RJTgR0Ejoeo1neEdRswcGEAWJU'
+);
+
+let sharedData = { nodes: {} }; /* { "0": [{id, data}, ...], ... } */
 
 async function fetchSharedData(){
-  try{
-    const r = await fetch(API);
-    const d = await r.json();
-    sharedData = d && d.nodes ? d : { nodes: {} };
-  } catch(e){ sharedData = { nodes: {} }; }
-}
-
-async function pushSharedData(){
-  await fetch(API, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(sharedData),
+  const { data } = await sb.from('images').select('*').order('created_at');
+  sharedData = { nodes: {} };
+  (data||[]).forEach(row => {
+    const k = String(row.node_idx);
+    if(!sharedData.nodes[k]) sharedData.nodes[k] = [];
+    sharedData.nodes[k].push({ id: row.id, data: row.data });
   });
 }
 
 function loadImgs(i){ return sharedData.nodes[String(i)] || []; }
+/* imgs[j].data = base64 src, imgs[j].id = supabase row id */
 
 /* compress image to max 900px / JPEG 0.75 before storing */
 function compressImg(file){
@@ -892,9 +892,9 @@ function renderImgGallery(i){
   const empty = imgs.length === 0
     ? `<div class="img-empty">🌸 Aucune image pour l'instant<br><span style="font-size:11px;font-weight:400">Clique sur le bouton pour en ajouter</span></div>`
     : '';
-  const items = imgs.map((src, j) => `
+  const items = imgs.map((img, j) => `
     <div class="img-item">
-      <img src="${src}" alt="image ${j+1}" onclick="openLightbox(this.src)"/>
+      <img src="${img.data}" alt="image ${j+1}" onclick="openLightbox(this.src)"/>
       <button class="img-del" title="Supprimer" onclick="deleteImg(${i},${j})">✕</button>
     </div>`).join('');
   return `
@@ -928,12 +928,14 @@ function refreshGallery(i){
 
 async function handleImgUpload(i, files){
   if(!files || !files.length) return;
-  setUploadStatus(i, '⏳ Compresión y subida…');
+  setUploadStatus(i, '⏳ Subiendo…');
   try{
     const compressed = await Promise.all(Array.from(files).map(compressImg));
+    const inserts = compressed.map(d => ({ node_idx: i, data: d }));
+    const { data, error } = await sb.from('images').insert(inserts).select();
+    if(error) throw error;
     if(!sharedData.nodes[String(i)]) sharedData.nodes[String(i)] = [];
-    sharedData.nodes[String(i)].push(...compressed);
-    await pushSharedData();
+    data.forEach(row => sharedData.nodes[String(i)].push({ id: row.id, data: row.data }));
     refreshGallery(i);
     setUploadStatus(i, '');
   } catch(e){
@@ -942,8 +944,9 @@ async function handleImgUpload(i, files){
 }
 
 async function deleteImg(i, j){
+  const img = loadImgs(i)[j];
+  await sb.from('images').delete().eq('id', img.id);
   sharedData.nodes[String(i)].splice(j, 1);
-  await pushSharedData();
   refreshGallery(i);
 }
 
