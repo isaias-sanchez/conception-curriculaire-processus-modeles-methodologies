@@ -50,6 +50,7 @@ header{
 .btn-p{background:linear-gradient(135deg,var(--main),var(--deep));border-color:var(--deep);color:#fff}
 .btn-p:hover{opacity:.9;box-shadow:0 4px 14px rgba(233,30,140,.3)}
 .btn-stop{color:var(--deeper);border-color:var(--main)}
+.img-upload-status{font-size:11px;font-weight:700;color:var(--deep);margin-top:6px;min-height:16px;text-align:center}
 
 /* DEDICATION */
 .dedication{
@@ -826,34 +827,64 @@ setInterval(()=>{
 },12000);
 
 /* ══════════════════════════════════════
-   IMAGES — per-node, stored in localStorage
+   IMAGES — shared via jsonblob (visible para todos)
 ══════════════════════════════════════ */
-const imgKey = i => `mm_imgs_${i}`;
+const BLOB_URL = 'https://jsonblob.com/api/jsonBlob/019e337a-3d3d-7a3c-9d96-e34b6ef5c5e9';
+let sharedData = { nodes: {} };
 
-function loadImgs(i){
-  try{ return JSON.parse(localStorage.getItem(imgKey(i))||'[]'); }
-  catch(e){ return []; }
+async function fetchSharedData(){
+  try{
+    const r = await fetch(BLOB_URL);
+    const d = await r.json();
+    sharedData = d && d.nodes ? d : { nodes: {} };
+  } catch(e){ sharedData = { nodes: {} }; }
 }
 
-function saveImgs(i, arr){
-  try{ localStorage.setItem(imgKey(i), JSON.stringify(arr)); }
-  catch(e){ alert('Stockage plein — essaie des images plus légères.'); }
+async function pushSharedData(){
+  await fetch(BLOB_URL, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(sharedData)
+  });
+}
+
+function loadImgs(i){ return sharedData.nodes[String(i)] || []; }
+
+/* compress image to max 900px / JPEG 0.75 before storing */
+function compressImg(file){
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 900;
+        let w = img.width, h = img.height;
+        if(w > MAX){ h = Math.round(h*MAX/w); w = MAX; }
+        if(h > MAX){ w = Math.round(w*MAX/h); h = MAX; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function setUploadStatus(i, msg){
+  document.querySelectorAll(`.img-status-${i}`).forEach(el => el.textContent = msg||'');
 }
 
 function updateNodeBadge(i){
   const imgs = loadImgs(i);
-  /* desktop node badge */
-  const badge = document.querySelector(`#nd${i} .n-img-badge`);
-  if(badge){
-    badge.textContent = `📷 ${imgs.length}`;
-    badge.style.display = imgs.length > 0 ? 'inline-flex' : 'none';
-  }
-  /* mobile card badge */
-  const mobBadge = document.querySelector(`#mob-card-${i} .mob-img-badge`);
-  if(mobBadge){
-    mobBadge.textContent = `📷 ${imgs.length}`;
-    mobBadge.style.display = imgs.length > 0 ? 'inline-flex' : 'none';
-  }
+  const n = imgs.length;
+  [`#nd${i} .n-img-badge`, `#mob-card-${i} .mob-img-badge`].forEach(sel => {
+    const el = document.querySelector(sel);
+    if(!el) return;
+    el.textContent = `📷 ${n}`;
+    el.style.display = n > 0 ? 'inline-flex' : 'none';
+  });
 }
 
 function renderImgGallery(i){
@@ -866,7 +897,6 @@ function renderImgGallery(i){
       <img src="${src}" alt="image ${j+1}" onclick="openLightbox(this.src)"/>
       <button class="img-del" title="Supprimer" onclick="deleteImg(${i},${j})">✕</button>
     </div>`).join('');
-
   return `
     <div class="img-section" data-node-idx="${i}">
       <div class="img-section-hd">
@@ -875,6 +905,7 @@ function renderImgGallery(i){
           📎 Ajouter des images
         </label>
       </div>
+      <div class="img-upload-status img-status-${i}"></div>
       ${empty}
       <div class="img-grid">${items}</div>
     </div>`;
@@ -887,7 +918,6 @@ function prepUpload(i){
 }
 
 function refreshGallery(i){
-  /* updates every rendered gallery for node i (desktop panel + mobile card) */
   document.querySelectorAll(`.img-section[data-node-idx="${i}"]`).forEach(el => {
     const tmp = document.createElement('div');
     tmp.innerHTML = renderImgGallery(i);
@@ -896,25 +926,24 @@ function refreshGallery(i){
   updateNodeBadge(i);
 }
 
-function handleImgUpload(i, files){
+async function handleImgUpload(i, files){
   if(!files || !files.length) return;
-  const arr = loadImgs(i);
-  let pending = files.length;
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      arr.push(e.target.result);
-      pending--;
-      if(pending === 0){ saveImgs(i, arr); refreshGallery(i); }
-    };
-    reader.readAsDataURL(file);
-  });
+  setUploadStatus(i, '⏳ Compresión y subida…');
+  try{
+    const compressed = await Promise.all(Array.from(files).map(compressImg));
+    if(!sharedData.nodes[String(i)]) sharedData.nodes[String(i)] = [];
+    sharedData.nodes[String(i)].push(...compressed);
+    await pushSharedData();
+    refreshGallery(i);
+    setUploadStatus(i, '');
+  } catch(e){
+    setUploadStatus(i, '❌ Error al subir. Intenta de nuevo.');
+  }
 }
 
-function deleteImg(i, j){
-  const arr = loadImgs(i);
-  arr.splice(j, 1);
-  saveImgs(i, arr);
+async function deleteImg(i, j){
+  sharedData.nodes[String(i)].splice(j, 1);
+  await pushSharedData();
   refreshGallery(i);
 }
 
@@ -937,18 +966,15 @@ function init(){
   BRANCHES.forEach((_, i) => updateNodeBadge(i));
 }
 
-/* Build mobile cards (needs localStorage + renderImgGallery ready) */
-buildMobile();
-
-/* Run immediately (script at end of body = DOM ready) */
-init();
-
-/* Run again when fonts/images settle */
-window.addEventListener('load', init);
-
 /* Redraw on resize */
 let rt;
 window.addEventListener('resize', ()=>{ clearTimeout(rt); rt=setTimeout(init, 150); });
+
+/* BOOT: load shared data first, then render everything */
+fetchSharedData().then(() => {
+  buildMobile();
+  init();
+});
 </script>
 </body>
 </html>
