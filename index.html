@@ -20,7 +20,8 @@ body{
 
 /* bg deco */
 .bg-deco{position:fixed;pointer-events:none;z-index:0;opacity:.22;
-  font-size:22px;animation:floatD var(--dur,7s) ease-in-out infinite;}
+  font-size:22px;animation:floatD var(--dur,7s) ease-in-out infinite;
+  will-change:transform;}
 @keyframes floatD{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-18px) rotate(12deg)}}
 
 /* HEADER */
@@ -72,7 +73,7 @@ header{
 #map-wrap{
   width:100%;
   overflow-x:auto;
-  overflow-y:visible;
+  overflow-y:hidden;
 }
 #canvas{
   position:relative;
@@ -99,6 +100,7 @@ header{
   z-index:40;
   width:210px;
   animation:floatC 5s ease-in-out infinite;
+  will-change:transform;
 }
 @keyframes floatC{
   0%,100%{transform:translate(-50%,-50%) translateY(0)}
