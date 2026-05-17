@@ -264,16 +264,78 @@ header{
 /* MOBILE */
 @media(max-width:768px){
   #map-wrap,#detail{display:none}
-  .mob{display:block!important;padding:16px 14px 60px}
+  .mob{display:block!important;padding:12px 12px 80px}
+  .img-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+  .img-upload-btn{width:100%;justify-content:center;padding:12px;font-size:13px}
 }
 .mob{display:none}
-.mob-card{background:var(--white);border:2px solid var(--soft);border-radius:16px;margin-bottom:12px;overflow:hidden}
-.mob-hd{display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer}
-.mob-ttl{font-size:13px;font-weight:800;color:var(--deep)}
-.mob-sub{font-size:10px;color:var(--muted);margin-top:1px}
-.mob-body{max-height:0;overflow:hidden;transition:max-height .4s}
-.mob-body.open{max-height:700px}
-.mob-bd-in{padding:0 14px 14px}
+
+/* mobile cards */
+.mob-card{
+  background:var(--white);
+  border-radius:20px;
+  margin-bottom:14px;
+  overflow:hidden;
+  box-shadow:0 4px 16px rgba(255,133,161,.14);
+  border:1.5px solid var(--soft);
+}
+.mob-hd{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;cursor:pointer;
+  border-left:5px solid var(--mid);
+  transition:background .2s;
+}
+.mob-hd:active{background:var(--cream)}
+.mob-emoji{font-size:26px;flex-shrink:0}
+.mob-titles{flex:1;min-width:0}
+.mob-ttl{font-size:13px;font-weight:900;color:var(--deep);line-height:1.2}
+.mob-sub{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3}
+.mob-hd-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.mob-chevron{font-size:13px;color:var(--muted);transition:transform .35s}
+.mob-card.open .mob-chevron{transform:rotate(180deg)}
+.mob-img-badge{
+  font-size:9px;font-weight:800;color:var(--deep);
+  background:var(--soft);border-radius:10px;padding:2px 7px;
+}
+
+.mob-body{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1)}
+.mob-body.open{max-height:3000px}
+.mob-bd-in{padding:4px 16px 18px}
+
+.mob-desc{
+  font-size:13px;color:var(--text);line-height:1.7;
+  padding:12px 14px;background:var(--cream);
+  border-radius:12px;border-left:3px solid var(--main);
+  margin-bottom:14px;margin-top:8px;
+}
+.mob-aud-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.mob-aud-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:8px 16px;border-radius:20px;border:none;
+  background:linear-gradient(135deg,var(--main),var(--deep));
+  color:#fff;font-size:12px;font-weight:800;
+  font-family:'Nunito',sans-serif;cursor:pointer;
+}
+.mob-kid{margin-bottom:12px}
+.mob-kid-ttl{
+  font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
+  margin-bottom:5px;display:flex;align-items:center;gap:5px;
+}
+.mob-kid-txt{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:5px}
+.mob-kid-item{
+  display:flex;align-items:flex-start;gap:6px;
+  font-size:12px;color:var(--text);padding:2px 0;line-height:1.5;
+}
+.mob-img-section{
+  margin-top:18px;padding-top:16px;
+  border-top:2px dashed var(--soft);
+}
+.mob-img-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.mob-img-title{font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.mob-img-count{font-size:11px;color:var(--deep);font-weight:800}
 </style>
 </head>
 <body>
@@ -646,25 +708,57 @@ function drawSVG(){
 /* ══════════════════════════════════════
    MOBILE FALLBACK
 ══════════════════════════════════════ */
-(function buildMobile(){
-  document.getElementById('mob').innerHTML=BRANCHES.map((b,i)=>`
-    <div class="mob-card">
-      <div class="mob-hd" onclick="this.nextElementSibling.classList.toggle('open')">
-        <span style="font-size:22px">${b.emoji}</span>
-        <div><div class="mob-ttl" style="color:${PINK[i]}">${b.title}</div><div class="mob-sub">${b.sub}</div></div>
-        <button class="n-aud" data-text="${esc(b.audio)}" onclick="event.stopPropagation();speakNode(this)" style="margin-left:auto">🔊</button>
+function buildMobile(){
+  document.getElementById('mob').innerHTML = BRANCHES.map((b,i) => `
+    <div class="mob-card" id="mob-card-${i}">
+      <div class="mob-hd" style="border-left-color:${PINK[i]}"
+           onclick="toggleMobCard(${i})">
+        <span class="mob-emoji">${b.emoji}</span>
+        <div class="mob-titles">
+          <div class="mob-ttl" style="color:${PINK[i]}">${b.title}</div>
+          <div class="mob-sub">${b.sub}</div>
+        </div>
+        <div class="mob-hd-right">
+          <span class="mob-chevron">▼</span>
+          <span class="mob-img-badge" style="display:none"></span>
+        </div>
       </div>
-      <div class="mob-body"><div class="mob-bd-in">
-        <p style="font-size:13px;color:#8B4566;line-height:1.65;margin-bottom:10px">${b.desc}</p>
-        ${b.kids.map(k=>`
-          <div style="margin-bottom:10px">
-            <div style="font-size:11px;font-weight:800;color:${PINK[i]};text-transform:uppercase;margin-bottom:3px">${k.ico} ${k.ttl}</div>
-            ${k.txt?`<p style="font-size:12px;color:#B07090;margin-bottom:4px;line-height:1.55">${k.txt}</p>`:''}
-            ${k.items?`<ul style="list-style:none">${k.items.map(it=>`<li style="font-size:12px;color:#5D2E46;padding:2px 0">🌸 ${it}</li>`).join('')}</ul>`:''}
-          </div>`).join('')}
-      </div></div>
+      <div class="mob-body" id="mob-body-${i}">
+        <div class="mob-bd-in">
+
+          <div class="mob-aud-row">
+            <button class="mob-aud-btn" data-text="${esc(b.audio)}"
+                    onclick="speakNode(this)">🔊 Écouter en français</button>
+          </div>
+
+          <div class="mob-desc">${b.desc}</div>
+
+          ${b.kids.map(k=>`
+            <div class="mob-kid">
+              <div class="mob-kid-ttl" style="color:${PINK[i]}">${k.ico} ${k.ttl}</div>
+              ${k.txt ? `<div class="mob-kid-txt">${k.txt}</div>` : ''}
+              ${k.items ? k.items.map(it=>`
+                <div class="mob-kid-item">🌸 <span>${it}</span></div>`).join('') : ''}
+            </div>`).join('')}
+
+          <div class="mob-img-section">
+            ${renderImgGallery(i)}
+          </div>
+
+        </div>
+      </div>
     </div>`).join('');
-})();
+
+  /* init badges */
+  BRANCHES.forEach((_,i) => updateNodeBadge(i));
+}
+
+function toggleMobCard(i){
+  const card = document.getElementById(`mob-card-${i}`);
+  const body = document.getElementById(`mob-body-${i}`);
+  card.classList.toggle('open');
+  body.classList.toggle('open');
+}
 
 /* ══════════════════════════════════════
    AUDIO
@@ -738,13 +832,17 @@ function saveImgs(i, arr){
 
 function updateNodeBadge(i){
   const imgs = loadImgs(i);
+  /* desktop node badge */
   const badge = document.querySelector(`#nd${i} .n-img-badge`);
-  if(!badge) return;
-  if(imgs.length > 0){
+  if(badge){
     badge.textContent = `📷 ${imgs.length}`;
-    badge.style.display = 'inline-flex';
-  } else {
-    badge.style.display = 'none';
+    badge.style.display = imgs.length > 0 ? 'inline-flex' : 'none';
+  }
+  /* mobile card badge */
+  const mobBadge = document.querySelector(`#mob-card-${i} .mob-img-badge`);
+  if(mobBadge){
+    mobBadge.textContent = `📷 ${imgs.length}`;
+    mobBadge.style.display = imgs.length > 0 ? 'inline-flex' : 'none';
   }
 }
 
@@ -755,12 +853,12 @@ function renderImgGallery(i){
     : '';
   const items = imgs.map((src, j) => `
     <div class="img-item">
-      <img src="${src}" alt="image ${j+1}" onclick="openLightbox('${src}')"/>
+      <img src="${src}" alt="image ${j+1}" onclick="openLightbox(this.src)"/>
       <button class="img-del" title="Supprimer" onclick="deleteImg(${i},${j})">✕</button>
     </div>`).join('');
 
   return `
-    <div class="img-section">
+    <div class="img-section" data-node-idx="${i}">
       <div class="img-section-hd">
         <span class="img-section-title">🖼️ Images (${imgs.length})</span>
         <label class="img-upload-btn" for="img-input" onclick="prepUpload(${i})">
@@ -778,6 +876,16 @@ function prepUpload(i){
   input.onchange = () => handleImgUpload(i, input.files);
 }
 
+function refreshGallery(i){
+  /* updates every rendered gallery for node i (desktop panel + mobile card) */
+  document.querySelectorAll(`.img-section[data-node-idx="${i}"]`).forEach(el => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderImgGallery(i);
+    el.replaceWith(tmp.firstElementChild);
+  });
+  updateNodeBadge(i);
+}
+
 function handleImgUpload(i, files){
   if(!files || !files.length) return;
   const arr = loadImgs(i);
@@ -787,17 +895,7 @@ function handleImgUpload(i, files){
     reader.onload = e => {
       arr.push(e.target.result);
       pending--;
-      if(pending === 0){
-        saveImgs(i, arr);
-        /* re-render gallery section in open detail panel */
-        const galleryEl = document.querySelector('#det-inner .img-section');
-        if(galleryEl){
-          const tmp = document.createElement('div');
-          tmp.innerHTML = renderImgGallery(i);
-          galleryEl.replaceWith(tmp.firstElementChild);
-        }
-        updateNodeBadge(i);
-      }
+      if(pending === 0){ saveImgs(i, arr); refreshGallery(i); }
     };
     reader.readAsDataURL(file);
   });
@@ -807,13 +905,7 @@ function deleteImg(i, j){
   const arr = loadImgs(i);
   arr.splice(j, 1);
   saveImgs(i, arr);
-  const galleryEl = document.querySelector('#det-inner .img-section');
-  if(galleryEl){
-    const tmp = document.createElement('div');
-    tmp.innerHTML = renderImgGallery(i);
-    galleryEl.replaceWith(tmp.firstElementChild);
-  }
-  updateNodeBadge(i);
+  refreshGallery(i);
 }
 
 function openLightbox(src){
@@ -834,6 +926,9 @@ function init(){
   requestAnimationFrame(drawSVG);
   BRANCHES.forEach((_, i) => updateNodeBadge(i));
 }
+
+/* Build mobile cards (needs localStorage + renderImgGallery ready) */
+buildMobile();
 
 /* Run immediately (script at end of body = DOM ready) */
 init();
