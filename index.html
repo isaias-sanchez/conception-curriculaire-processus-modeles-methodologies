@@ -618,7 +618,6 @@ function openDetail(i){
     ${renderImgGallery(i)}`;
 
   document.getElementById('detail').classList.add('open');
-  setTimeout(()=>document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
   drawSVG();
 }
 
