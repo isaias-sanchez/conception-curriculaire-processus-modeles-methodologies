@@ -528,6 +528,18 @@ let selIdx    = -1;
 
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
+/* Genera el texto de audio leyendo la estructura visual de izquierda a derecha:
+   título → subtítulo → descripción → cada cajita (título, texto, ítems) */
+function branchAudioText(b){
+  let t = `${b.title}. ${b.sub}. ${b.desc}`;
+  b.kids.forEach(k => {
+    t += `. ${k.ttl}`;
+    if(k.txt)   t += `. ${k.txt}`;
+    if(k.items) t += `. ${k.items.join('. ')}`;
+  });
+  return t;
+}
+
 BRANCHES.forEach((b, i) => {
   const el = document.createElement('div');
   el.className = 'node';
@@ -538,7 +550,7 @@ BRANCHES.forEach((b, i) => {
       <div class="n-ttl" style="color:${PINK[i]}">${b.title}</div>
       <div class="n-sub">${b.sub}</div>
       <div class="n-foot">
-        <button class="n-aud" data-text="${esc(b.audio)}" onclick="event.stopPropagation();speakNode(this)">🔊 Écouter</button>
+        <button class="n-aud" data-text="${esc(branchAudioText(b))}" onclick="event.stopPropagation();speakNode(this)">🔊 Écouter</button>
         <span class="n-arrow">↗ Détails</span>
       </div>
       <span class="n-img-badge" style="display:none"></span>
@@ -736,7 +748,7 @@ function buildMobile(){
         <div class="mob-bd-in">
 
           <div class="mob-aud-row">
-            <button class="mob-aud-btn" data-text="${esc(b.audio)}"
+            <button class="mob-aud-btn" data-text="${esc(branchAudioText(b))}"
                     onclick="speakNode(this)">🔊 Écouter en français</button>
           </div>
 
@@ -801,7 +813,7 @@ document.getElementById('btn-lire').addEventListener('click', ()=>{
   stopAll();
   const texts=[
     'La conception curriculaire est un processus dynamique, continu et participatif visant à organiser l\'enseignement-apprentissage selon les besoins sociaux, culturels et éducatifs.',
-    ...BRANCHES.map(b=>b.title+'. '+b.audio)
+    ...BRANCHES.map(b=>branchAudioText(b))
   ];
   document.getElementById('btn-lire').textContent='⏸ En lecture…';
   let idx=0; reading=true;
